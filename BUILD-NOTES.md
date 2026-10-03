@@ -34,7 +34,7 @@ tree 覆盖时写入、只把真正的 tree 授权当作解析基准、文档离
 绝对路径：
 
 ```text
-/home/xstrsx/project/MarkView/MarkView-1.0.9-release.apk
+MarkView-1.0.9-release.apk（相对仓库根目录）
 ```
 
 - applicationId：`com.markview.viewer`（与 1.0.0 ~ 1.0.8 相同，可直接覆盖升级）
@@ -77,8 +77,8 @@ Signer #1 certificate SHA-256 digest: b0aef553d91efe8ec8bc5e5810a99306501081d2d6
 
 | 项目 | 位置 |
 | --- | --- |
-| 密钥库 | `/home/xstrsx/project/MarkView/markview-release.jks`（别名 `markview`，4096 位 RSA） |
-| 口令 | `/home/xstrsx/project/MarkView/keystore.properties`（已被 `.gitignore` 忽略） |
+| 密钥库 | `markview-release.jks`（仓库根目录，别名 `markview`，4096 位 RSA；**不纳入版本控制**） |
+| 口令 | 仓库根目录的签名配置文件（已被 `.gitignore` 忽略；构建机本地持有） |
 
 **请立即备份这两个文件。** 丢失后将无法再为 `com.markview.viewer` 发布升级包。
 源码、APK 资源与项目书中都没有写入任何口令。

@@ -26,7 +26,8 @@ const fs = require("fs");
 const path = require("path");
 const { JSDOM } = require("jsdom");
 
-const ASSETS = process.argv[2] || "/home/xstrsx/project/MarkView/app/src/main/assets/markview";
+// Defaults to the assets of this checkout, so the suite runs from anywhere.
+const ASSETS = process.argv[2] || path.resolve(__dirname, "../../app/src/main/assets/markview");
 const PROJECT = path.resolve(ASSETS, "../../../../..");
 const failures = [];
 const notes = [];

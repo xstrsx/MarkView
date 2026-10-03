@@ -4,6 +4,7 @@ Pure stdlib: the icon is a single stroked polyline (the letter M with round caps
 joins), so a small supersampled software rasteriser is enough. Four variants are drawn:
 square, circle mask, squircle mask (typical launchers) and the monochrome layer.
 """
+import os
 import struct, zlib
 
 CANVAS = 108.0
@@ -125,5 +126,5 @@ for y in range(H):
         else:
             row += grid[tr][tc][ty][tx * 3:tx * 3 + 3]
     canvas.append(bytes(row))
-write_png("/home/xstrsx/project/MarkView/tools/icon-preview.png", W, H, canvas)
+write_png(os.path.join(os.path.dirname(os.path.abspath(__file__)), "icon-preview.png"), W, H, canvas)
 print("wrote tools/icon-preview.png (%dx%d)" % (W, H))
