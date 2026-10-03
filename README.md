@@ -162,9 +162,21 @@ app/src/main/assets/markview/               页面层（离线）
 app/src/test/                纯 JVM 单元测试
 app/src/androidTest/         清单入口点测试（需真机/模拟器）
 tools/js-smoke/              页面回归套件（6 套 190 条断言，需要 Node）
-tools/icon-preview.py        用标准库把启动图标渲染成 PNG 预览
-test/                        各轮测试报告、项目书与真机回归夹具
+tools/js-smoke/fixtures/     回归套件自带的夹具（化学方程式测试.md）
+tools/icon-preview.py        用标准库把启动图标渲染成 PNG 预览（PNG 为生成物，不入库）
 ```
+
+以上即**仓库的全部内容**。以下内容只保留在本地、**一律不入库**（`.gitignore` 保证）：
+
+| 本地内容 | 原因 |
+| --- | --- |
+| `test/`（各轮测试报告、真机截图、评审用夹具） | 评审素材与设备证据，非项目源码；回归套件需要的夹具已放入 `tools/js-smoke/fixtures/` |
+| `keystore.properties`、`*.jks` | 签名材料与口令，必须离线备份（项目书 §13.1） |
+| `MarkView-<版本>-release.apk` / `.idsig` | 构建产物；哈希记录在 `SHA256.txt` |
+| `local.properties` | 本机 SDK 路径 |
+| `app/build/`、`.gradle/`、`.kotlin/` | 构建缓存与中间产物 |
+| `tools/icon-preview.png` | 由 `tools/icon-preview.py` 生成 |
+| `chat-export-*.md`、`markview-log.txt` | 个人对话导出与 logcat 收集文件 |
 
 ---
 
@@ -241,11 +253,11 @@ sha256sum MarkView-<版本>-release.apk        # 追加到 SHA256.txt
 | `MarkView-一次落地项目书.md` | 产品定义、验收标准、安全与签名要求（需求基线） |
 | `BUILD-NOTES.md` | 每个交付版本的构建、签名、根因分析、已执行检查与待真机验证清单 |
 | `MarkView-第三轮查证记录.md` | 第三轮问题的逐条查证证据与实施结果 |
-| `test/MarkView-首轮测试错误报告.md` | 第一轮真机问题（MV-01 ~ MV-04） |
-| `test/MarkView-第二轮测试错误报告.md` | 第二轮真机问题（MV-05、MV-06） |
-| `test/MarkView-第三轮测试错误报告.md` | 第三轮真机问题（MV-07 ~ MV-13） |
-| `test/MarkView-极全面功能与安全测试.md` | 功能与安全覆盖面测试文档 |
-| `test/MarkView-化学方程式支持增量项目书.md` | 化学方程式支持的需求与验收（增量书） |
-| `test/化学方程式测试.md`、`test/化学.md` | 真机回归夹具（CE01–CE08、分子结构式等） |
+| `test/MarkView-首轮测试错误报告.md` | 第一轮真机问题（MV-01 ~ MV-04）——**本地素材，不入库** |
+| `test/MarkView-第二轮测试错误报告.md` | 第二轮真机问题（MV-05、MV-06）——**本地素材，不入库** |
+| `test/MarkView-第三轮测试错误报告.md` | 第三轮真机问题（MV-07 ~ MV-13）——**本地素材，不入库** |
+| `test/MarkView-极全面功能与安全测试.md` | 功能与安全覆盖面测试文档——**本地素材，不入库** |
+| `test/MarkView-化学方程式支持增量项目书.md` | 化学方程式支持的需求与验收（增量书）——**本地素材，不入库** |
+| `test/化学方程式测试.md`、`test/化学.md` | 真机回归夹具（CE01–CE08、分子结构式等）——**本地素材，不入库**（回归套件用 `tools/js-smoke/fixtures/` 内的副本） |
 | `tools/js-smoke/README.md` | 页面回归套件说明与运行方式 |
 | `SHA256.txt` | 各交付 APK 的 SHA-256 |

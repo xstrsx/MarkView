@@ -57,10 +57,15 @@ unaffected. The emulation mirrors what the library actually writes: each label i
 `index.html` (KaTeX **then** the mhchem companion extension) and renders CE01–CE08 plus the
 wide equation, asserting the MathML that is actually produced — subscripts, charges,
 `→` / `⇌`, the Chinese condition 加热 and the `(s)`/`(aq)` state marks. It also covers the
-code-region boundaries (§7.4), the whole `test/化学方程式测试.md` fixture (§7.1–7.3, failure
+code-region boundaries (§7.4), the whole `fixtures/化学方程式测试.md` fixture (§7.1–7.3, failure
 isolation included), the container CSS that is checkable without a layout engine, and — with
 a second page built **without** the mhchem script — that a missing extension is reported
 differently from a single bad formula.
+
+Fixtures live in `tools/js-smoke/fixtures/` and are part of the repository, so the suites run
+from a fresh clone. `smoke5.js` prefers a *local* `test/化学方程式测试.md` when one exists (that
+directory is review material and is deliberately not tracked), and falls back to the shipped copy
+otherwise.
 
 `smoke6.js` — third round of real-device findings (MV-07 / MV-08 / MV-09 / MV-10 / MV-11).
 It renders every writing style of `test/化学.md` and asserts which ones are display blocks and

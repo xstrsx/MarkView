@@ -256,8 +256,15 @@ const display = (window, tex) => {
   check(content.querySelectorAll(".mk-math-error").length === 0, "the code fixture produces no error fallback");
 
   console.log("\n§7.3 整篇渲染：坏公式后继续（含夹具原文）:");
-  const fixturePath = path.resolve(ASSETS, "../../../../../test/化学方程式测试.md");
-  const wholeDoc = fs.existsSync(fixturePath) ? fs.readFileSync(fixturePath, "utf8") : null;
+  // The fixture belongs to the test tooling: the repository ships its own copy under
+  // tools/js-smoke/fixtures/. A local `test/` copy (review material, deliberately not
+  // tracked) takes precedence when it exists, so a reviewer's own edits are picked up here.
+  const fixtureCandidates = [
+    path.resolve(ASSETS, "../../../../../test/化学方程式测试.md"),
+    path.join(__dirname, "fixtures", "化学方程式测试.md"),
+  ];
+  const fixturePath = fixtureCandidates.find((candidate) => fs.existsSync(candidate)) || null;
+  const wholeDoc = fixturePath ? fs.readFileSync(fixturePath, "utf8") : null;
   if (wholeDoc) {
     await window.MarkView.render(wholeDoc);
     const rendered = document.getElementById("mk-content");
@@ -277,7 +284,7 @@ const display = (window, tex) => {
     check(rendered.querySelectorAll(".mk-smiles svg, .mk-diagram-error").length >= 1, "SMILES in the fixture is still processed");
     check((rendered.textContent || "").indexOf("加热") !== -1, "the Chinese reaction condition reaches the rendered page");
   } else {
-    check(false, "fixture test/化学方程式测试.md not found at " + fixturePath);
+    check(false, "the 化学方程式测试.md fixture was found in none of: " + fixtureCandidates.join(", "));
   }
 
   console.log("\ndiagnostics (" + notes.length + "):");
