@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <!--
+      Zoom gesture (MV-08): the WebView already refuses zooming in code
+      (`setSupportZoom(false)` / `builtInZoomControls`, WebViewFactory §4); the viewport now
+      states the same thing, so the page can never be left in a pinch-zoomed state. Body
+      text still follows the system font scale through `WebSettings.textZoom`, so system
+      font-size accessibility is unaffected.
+    -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="color-scheme" content="light dark" />
+    <!--
+      Every renderer is bundled in the APK. The policy below is the enforcement
+      layer behind `WebSettings` (project book §7):
+        * no remote script, style, font or frame — ever;
+        * images may be APK-local, data: URLs, or HTTP/HTTPS references that the
+          document itself asked for;
+        * no connect/media/object/frame sources at all.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: http: https:; font-src 'self' data:; connect-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; child-src 'none'; worker-src 'none'; manifest-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <title>MarkView</title>
+    <link rel="stylesheet" href="css/katex.min.css" />
+    <link rel="stylesheet" href="css/markview.css" />
+  </head>
+  <body>
+    <div id="mk-status" hidden></div>
+    <div id="mk-content" class="mk-document"></div>
+
+    <script src="js/polyfill.js"></script>
+    <script src="vendor/markdown-it.min.js"></script>
+    <script src="vendor/markdown-it-task-lists.min.js"></script>
+    <script src="vendor/katex.min.js"></script>
+    <!-- mhchem registers \ce into the KaTeX instance above, so it must come between
+         KaTeX and the viewer script that starts rendering formulas (project book §4.2). -->
+    <script src="vendor/katex-mhchem.min.js"></script>
+    <script src="vendor/mermaid.min.js"></script>
+    <script src="vendor/smiles-drawer.min.js"></script>
+    <script src="js/markview.js"></script>
+  </body>
+</html>

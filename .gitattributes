@@ -1,0 +1,23 @@
+# Line endings: keep the repository in LF (the build machines are Linux), and keep the
+# generated Windows launcher and the Gradle wrapper scripts usable on both platforms.
+* text=auto eol=lf
+*.bat text eol=crlf
+gradlew text eol=lf
+gradlew.bat text eol=crlf
+
+# Binary assets: never normalise, never diff as text.
+*.jar binary
+*.jks binary
+*.keystore binary
+*.apk binary
+*.idsig binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.zip binary

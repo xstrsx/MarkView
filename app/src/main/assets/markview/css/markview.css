@@ -1,0 +1,423 @@
+/*
+ * MarkView viewer stylesheet.
+ *
+ * The theme is driven by `data-theme` on <html>, which the native layer sets from
+ * the system uiMode before each render, so light/dark never depends on WebView
+ * heuristics. Font scaling is handled natively through `WebSettings.textZoom`, so
+ * every size here is expressed in px/em and scales with the system font size.
+ */
+
+:root {
+  --mk-bg: #ffffff;
+  --mk-fg: #1f2328;
+  --mk-muted: #59636e;
+  --mk-border: #d1d9e0;
+  --mk-surface: #f6f8fa;
+  --mk-surface-strong: #eaeef2;
+  --mk-link: #0969da;
+  --mk-link-visited: #6639ba;
+  --mk-code-fg: #1f2328;
+  --mk-quote-bar: #d1d9e0;
+  --mk-mark: rgba(255, 235, 59, 0.35);
+  --mk-missing: #9a6700;
+  --mk-error: #b3261e;
+  --mk-shadow: rgba(31, 35, 40, 0.12);
+}
+
+html[data-theme="dark"] {
+  --mk-bg: #0d1117;
+  --mk-fg: #e6edf3;
+  --mk-muted: #9198a1;
+  --mk-border: #3d444d;
+  --mk-surface: #161b22;
+  --mk-surface-strong: #21262d;
+  --mk-link: #4493f8;
+  --mk-link-visited: #ab7df8;
+  --mk-code-fg: #e6edf3;
+  --mk-quote-bar: #3d444d;
+  --mk-mark: rgba(187, 128, 9, 0.45);
+  --mk-missing: #d29922;
+  --mk-error: #ff7b72;
+  --mk-shadow: rgba(1, 4, 9, 0.6);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 12px 16px 40px;
+  background: var(--mk-bg);
+  color: var(--mk-fg);
+  font-family: -apple-system, "Roboto", "Noto Sans CJK SC", "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+#mk-status {
+  margin: 0 0 8px;
+  color: var(--mk-muted);
+  font-size: 0.85em;
+}
+
+#mk-status[hidden] {
+  display: none;
+}
+
+#mk-content > *:first-child {
+  margin-top: 0;
+}
+
+/* ------------------------------------------------------------------ typography */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 1.6em 0 0.6em;
+  line-height: 1.3;
+  font-weight: 600;
+  scroll-margin-top: 8px;
+}
+
+h1 { font-size: 1.6em; padding-bottom: 0.25em; border-bottom: 1px solid var(--mk-border); }
+h2 { font-size: 1.35em; padding-bottom: 0.2em; border-bottom: 1px solid var(--mk-border); }
+h3 { font-size: 1.2em; }
+h4 { font-size: 1.05em; }
+h5 { font-size: 1em; }
+h6 { font-size: 0.95em; color: var(--mk-muted); }
+
+p { margin: 0 0 1em; }
+
+a {
+  color: var(--mk-link);
+  text-decoration: none;
+}
+
+a:visited { color: var(--mk-link-visited); }
+a:active { text-decoration: underline; }
+
+strong { font-weight: 600; }
+mark { background: var(--mk-mark); color: inherit; }
+
+hr {
+  height: 1px;
+  margin: 1.6em 0;
+  border: 0;
+  background: var(--mk-border);
+}
+
+ul,
+ol {
+  margin: 0 0 1em;
+  padding-left: 1.8em;
+}
+
+li + li { margin-top: 0.25em; }
+li > ul,
+li > ol { margin: 0.25em 0 0.25em; }
+
+blockquote {
+  margin: 0 0 1em;
+  padding: 0 1em;
+  color: var(--mk-muted);
+  border-left: 4px solid var(--mk-quote-bar);
+}
+
+blockquote > :last-child { margin-bottom: 0; }
+
+/* --------------------------------------------------------- code and task lists */
+
+code,
+kbd,
+samp,
+pre {
+  font-family: "JetBrains Mono", "Roboto Mono", "Noto Sans Mono CJK SC", ui-monospace, monospace;
+  font-size: 0.88em;
+}
+
+code {
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+  background: var(--mk-surface-strong);
+  color: var(--mk-code-fg);
+}
+
+pre {
+  margin: 0 0 1em;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--mk-border);
+  background: var(--mk-surface);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+pre code {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  white-space: pre;
+}
+
+.task-list-item {
+  list-style: none;
+  margin-left: -1.35em;
+}
+
+.task-list-item-checkbox {
+  margin: 0 0.45em 0 0;
+  vertical-align: middle;
+  accent-color: var(--mk-link);
+}
+
+/* -------------------------------------------------------------------- tables */
+
+.mk-table-scroll {
+  margin: 0 0 1em;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: max-content;
+  min-width: 100%;
+  font-size: 0.95em;
+}
+
+th,
+td {
+  padding: 6px 13px;
+  border: 1px solid var(--mk-border);
+}
+
+th {
+  background: var(--mk-surface);
+  font-weight: 600;
+  text-align: left;
+}
+
+tr:nth-child(2n) td {
+  background: var(--mk-surface);
+}
+
+/* ------------------------------------------------------- images and diagrams */
+
+img {
+  max-width: 100%;
+  height: auto;
+  /* Normal images keep their original colours in both themes. */
+}
+
+.mk-diagram {
+  margin: 0 0 1em;
+}
+
+.mk-diagram svg {
+  display: block;
+}
+
+/*
+ * Mermaid (MV-04): a narrow diagram fills the available width so its labels stay
+ * readable, while a diagram wider than the screen keeps its natural size inside a
+ * locally scrolling container instead of being scaled down to unreadable type.
+ */
+.mk-mermaid {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.mk-mermaid > svg {
+  width: auto;
+  min-width: 100%;
+  max-width: none;
+  height: auto;
+}
+
+/*
+ * SMILES (MV-05 / MV-06): the SVG carries an explicit pixel size computed from its own
+ * ink at a fixed unit scale, so the structure must never be capped to the container
+ * width — a wide molecule keeps a readable size and is reached by scrolling, a small one
+ * stays at its natural size and is centred.
+ */
+.mk-smiles {
+  overflow-x: auto;
+  /* Keep sideways over-scroll inside the structure; vertical gestures still belong to
+     the page (no touch-action / overscroll-behavior-y is ever set). */
+  overscroll-behavior-x: contain;
+}
+
+.mk-smiles > svg {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: none;
+}
+
+.mk-diagram-fallback {
+  padding: 8px 10px;
+  border: 1px solid var(--mk-border);
+  border-radius: 8px;
+  background: var(--mk-surface);
+}
+
+.mk-diagram-fallback-title {
+  margin-bottom: 6px;
+  color: var(--mk-error);
+  font-size: 0.9em;
+}
+
+.mk-diagram-fallback pre {
+  margin: 0;
+  border: 0;
+  background: transparent;
+}
+
+.mk-diagram-error .mk-diagram-fallback-title:empty {
+  display: none;
+}
+
+/* MV-03: links with an unsupported protocol keep their text but lose the anchor. */
+.mk-plain-link {
+  color: inherit;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.mk-missing-image {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px dashed var(--mk-border);
+  border-radius: 6px;
+  color: var(--mk-muted);
+  font-size: 0.85em;
+}
+
+/* ---------------------------------------------------------------- math (KaTeX) */
+
+/*
+ * Inline formulas (project book §5.1): they sit in the text flow, and `display: inline-block`
+ * keeps each one atomic inside its line (no internal line breaking).
+ *
+ * MV-09: the wrapper deliberately does **not** set `overflow` any more. An inline-block whose
+ * `overflow` is not `visible` takes its baseline from its bottom margin edge (CSS 2.1
+ * §10.8.1), which lifted every formula above the surrounding text; with `overflow: visible`
+ * the baseline is KaTeX's own, so a formula and the CJK text next to it stay on one line.
+ *
+ * A formula that really is wider than its line must still not widen the document (§5.1), so
+ * `adjustInlineMath()` measures the rendered element and marks the ones that overflow: the
+ * scroll container below is opt-in and only applied where it is actually needed.
+ */
+.mk-math-inline {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0.15em 0;
+  vertical-align: baseline;
+  white-space: nowrap;
+}
+
+.mk-math-inline-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+}
+
+/*
+ * Display formulas (project book §5.2 / §5.3): the block keeps its natural size, the
+ * container limits the width and scrolls, and the vertical padding is the slack that
+ * stops arrow conditions, superscripts and descenders from being clipped.
+ */
+.mk-math-block {
+  margin: 0.6em 0;
+  padding: 0.35em 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+/*
+ * CJK reaction conditions (project book §4.4). `\ce{... ->[加热] ...}` renders 加热 as text,
+ * and KaTeX's own stack ends in the generic `serif`, so it already falls back to the system
+ * font. Naming the usual CJK families explicitly keeps that fallback predictable on ROMs
+ * with a thin generic family. KaTeX_Main stays first and every inner span that needs a
+ * specific math font (KaTeX_Math, KaTeX_SansSerif, …) keeps its own rule, so arrows,
+ * superscripts and subscripts are untouched.
+ */
+.mk-math-block .katex,
+.mk-math-inline .katex {
+  font-family: KaTeX_Main, "Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC",
+    "Noto Serif CJK SC", "PingFang SC", "Microsoft YaHei", "Times New Roman", serif;
+}
+
+/*
+ * KaTeX centres display math with `text-align: center`. Centred content wider than its
+ * container overflows on *both* sides, and the left half could never be scrolled back into
+ * view, so the display box is sized by its content (`max-content`) with the container width
+ * as a floor:
+ *   * formula fits — the box is exactly the container width, `.katex` (display: block) fills
+ *     it and KaTeX's own centring applies. `\tag{…}` is `position: absolute; right: 0` inside
+ *     `.katex-html` (katex.min.css), so it lands on the right edge of the container, clear of
+ *     the formula. MV-10: the `display: flex` + `flex: 0 0 auto` of 1.0.6 shrank `.katex` to
+ *     the formula's own width and put the tag on top of it;
+ *   * formula is wider — the box grows to the formula, so it only overflows to the right and
+ *     the left edge stays reachable through the `overflow-x: auto` of `.mk-math-block`.
+ * `min-width: 100%` keeps the tag against the right edge in the narrow case, `width:
+ * max-content` keeps the left edge reachable in the wide case.
+ */
+.mk-math-block .katex-display {
+  display: block;
+  width: max-content;
+  min-width: 100%;
+  margin: 0.3em 0;
+}
+
+.mk-math-error {
+  color: var(--mk-error);
+  background: transparent;
+}
+
+.katex,
+.katex-display {
+  color: var(--mk-fg);
+}
+
+/* Mermaid keeps its own palette, but its background must follow the theme. */
+.mk-mermaid svg {
+  background: transparent;
+}
+
+html[data-theme="dark"] .mk-mermaid .label,
+html[data-theme="dark"] .mk-mermaid .nodeLabel,
+html[data-theme="dark"] .mk-mermaid .edgeLabel {
+  color: var(--mk-fg);
+}
+
+/* --------------------------------------------------------------- page messages */
+
+.mk-message {
+  padding: 18px 16px;
+  border: 1px solid var(--mk-border);
+  border-radius: 10px;
+  background: var(--mk-surface);
+  box-shadow: 0 1px 2px var(--mk-shadow);
+}
+
+.mk-message-title {
+  font-size: 1.05em;
+  font-weight: 600;
+}
+
+.mk-message-detail {
+  margin-top: 6px;
+  color: var(--mk-muted);
+  font-size: 0.9em;
+  white-space: pre-wrap;
+}

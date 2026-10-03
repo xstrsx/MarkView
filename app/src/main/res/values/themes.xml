@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      No app toolbar anywhere: the home page and the viewer both keep the system
+      status/navigation bars and show only content (project book §4.1, §8).
+
+      MarkView paints its own light and dark palettes (values/, values-night/), so
+      algorithmic darkening is switched off in WebViewFactory and the system bar
+      appearance is set from code — `android:windowLightNavigationBar` would need
+      values-v27 and minSdk here is 26.
+    -->
+    <style name="Theme.MarkView" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
+        <item name="android:windowBackground">@color/app_background</item>
+        <item name="android:colorAccent">@color/accent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+    </style>
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark theme: mirrors html[data-theme="dark"] in markview.css. -->
+    <color name="app_background">#FF0D1117</color>
+    <color name="row_surface">#FF161B22</color>
+    <color name="row_surface_unavailable">#FF2A2113</color>
+    <color name="row_border">#FF3D444D</color>
+    <color name="text_primary">#FFE6EDF3</color>
+    <color name="text_secondary">#FF9198A1</color>
+    <color name="text_warning">#FFD29922</color>
+    <color name="accent">#FF4493F8</color>
+    <color name="ic_launcher_background">#FF1F6FEB</color>
+</resources>

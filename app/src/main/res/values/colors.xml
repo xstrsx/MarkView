@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Light theme: mirrors the CSS palette in assets/markview/css/markview.css. -->
+    <color name="app_background">#FFFFFFFF</color>
+    <color name="row_surface">#FFF6F8FA</color>
+    <color name="row_surface_unavailable">#FFFDF4E3</color>
+    <color name="row_border">#FFD1D9E0</color>
+    <color name="text_primary">#FF1F2328</color>
+    <color name="text_secondary">#FF59636E</color>
+    <color name="text_warning">#FF9A6700</color>
+    <color name="accent">#FF0969DA</color>
+    <color name="ic_launcher_background">#FF1F6FEB</color>
+</resources>

@@ -1,0 +1,22 @@
+b08efd3785c5f9be22e042f326dde16db8765612778f5dd14af72fa0ca366658  MarkView-1.0.7-release.apk
+c9e75acd88eb92d643d8437142c35cb6c36527f17589b874236bd040c4a5cc77  MarkView-1.0.7-release.apk.idsig
+
+# Superseded deliveries (installing an older one after 1.0.7 is a downgrade).
+# 1.0.3 carried a Markdown-mark icon that was reverted in 1.0.4:
+bb07f9931187239ef118d9b541aad7f7e0e3896790aa6f4584925762a7cbdf8d  MarkView-1.0.6-release.apk
+16209bafcca5220fb0b9997e64e48b8163d21cb952c5bee3cab868bcdd9db52b  MarkView-1.0.6-release.apk.idsig
+
+# Superseded deliveries (installing an older one after 1.0.6 is a downgrade).
+# 1.0.3 carried a Markdown-mark icon that was reverted in 1.0.4:
+793bc71069e8311de2cf598ab9cd0aa7d4a0316407244b063560e4f231f54a4b  MarkView-1.0.5-release.apk
+a039d00fb8c341f06f092187588fc015202d81258237aec1dbfb8122cdfbf315  MarkView-1.0.5-release.apk.idsig
+abb42a6a7056a3addcc136a49cf8dd3695bd8e2803132c316418c340f4fcc18e  MarkView-1.0.4-release.apk
+8de08acb20a763352693a0927aa93bee7335db457ee78c2e711389afcc54f6a2  MarkView-1.0.4-release.apk.idsig
+e731d5a46625b6b4969b47f8cac2466e7c1a8abcac451e87e1e7722152101def  MarkView-1.0.3-release.apk
+f7f649361b1cebaae496b683e7df518ff9065acbae72010c00d967e44914a3d1  MarkView-1.0.3-release.apk.idsig
+453db697c4a755339854a12ea925862da26406cf9a937f7c9eed9948be8e0467  MarkView-1.0.2-release.apk
+2449c92591615706f3ed7d4e4c14f88910f7499c3591cc8f801c03964992b6c3  MarkView-1.0.2-release.apk.idsig
+f83fc2e58fa67893fd263e639574ce25bf427ec4111e8534b698e7a69fb09458  MarkView-1.0.1-release.apk
+6f8bfc63d909e0f55c5006af35f2364f2593406e579efbdca4576297599052d1  MarkView-1.0.1-release.apk.idsig
+24f1d84d57342df9f473b3cfd10996e58a52b0ff14edf112522ed4648fb0cade  MarkView-1.0.0-release.apk
+7012ff4047db8952cd2b8c23d15e43385b90e055a76ff3b71c346d07713a496f  MarkView-1.0.0-release.apk.idsig

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Root of the single Activity. Both pages live here and are shown/hidden by
+  MainActivity; there is no toolbar, no title bar and no floating button.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <include
+        android:id="@+id/home_page"
+        layout="@layout/page_home" />
+
+    <include
+        android:id="@+id/viewer_page"
+        layout="@layout/page_viewer" />
+
+</FrameLayout>

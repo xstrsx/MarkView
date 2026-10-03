@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MarkView</string>
+
+    <!-- Home page -->
+    <string name="home_section_title">已授权文件夹</string>
+    <string name="home_empty">还没有已授权的文件夹</string>
+    <string name="home_hint">列表只显示授权状态，长按可移除</string>
+    <string name="action_add_folder">添加文件夹</string>
+    <string name="action_open_file">打开文件</string>
+
+    <!-- Folder rows -->
+    <string name="folder_name_fallback">未命名文件夹</string>
+    <string name="folder_location_unavailable">位置不可用</string>
+    <string name="folder_status_unavailable">不可用</string>
+
+    <!-- Viewer -->
+    <string name="viewer_error_title">无法读取文件</string>
+    <string name="viewer_error_too_large">文档过大，无法打开（超过 16 MB）</string>
+
+    <!-- Messages -->
+    <string name="toast_single_file_only">一次只能打开一个文件</string>
+    <string name="toast_not_markdown">无法识别的 Markdown 文件：%1$s</string>
+    <string name="toast_unreadable">无法读取该文件</string>
+    <string name="toast_content_uri_only">只能通过系统授权的文件打开</string>
+    <string name="toast_folder_added">已添加文件夹</string>
+    <string name="toast_folder_duplicate">该文件夹已在列表中</string>
+    <string name="toast_folder_permission_failed">已添加，但读取权限无法持久化</string>
+    <string name="toast_folder_removed">已移除文件夹</string>
+    <string name="toast_relative_unavailable">无法确认该文档所在目录，无法打开相对链接</string>
+    <string name="toast_no_shared_file">分享内容中没有可打开的文件</string>
+    <string name="toast_no_file_manager">没有可用的文件管理器</string>
+</resources>

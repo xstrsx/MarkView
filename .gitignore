@@ -1,0 +1,38 @@
+# --------------------------------------------------------------- build output
+.gradle/
+.kotlin/
+build/
+app/build/
+captures/
+*.apk
+*.idsig
+*.aab
+*.ap_
+*.dex
+*.class
+*.hprof
+
+# ------------------------------------------------- local machine configuration
+local.properties
+.idea/
+*.iml
+out/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ----------------------------------------- signing material — never commit these
+# project book §13.1: the keystore must be backed up offline, and the passwords must
+# never appear in the repository, in the APK or in any document.
+keystore.properties
+*.jks
+*.keystore
+
+# ------------------------------------------------------ local diagnostic output
+# logcat dumps collected while reproducing a device issue (BUILD-NOTES.md §10)
+markview-log.txt
+*.log
+
+# ------------------------------------------------------------- personal material
+# Raw chat exports stay on this machine; they are not part of the project history.
+chat-export-*.md

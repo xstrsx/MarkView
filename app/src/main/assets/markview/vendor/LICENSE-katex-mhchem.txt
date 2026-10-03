@@ -1,0 +1,26 @@
+KaTeX companion extension "mhchem" - licence and provenance
+===========================================================
+
+File in this directory: katex-mhchem.min.js
+
+Origin
+------
+Taken verbatim from the npm package katex@0.16.22, path dist/contrib/mhchem.min.js
+(33,712 bytes). vendor/katex.min.js and css/katex.min.css come from the same package
+and the same version, so the extension matches the formula engine exactly.
+
+The extension bundles the mhchem syntax implementation version 3.3.0 by Martin Hensel
+(https://mhchem.github.io/MathJax-mhchem/), adapted for KaTeX.
+
+Licence
+-------
+Distributed as part of KaTeX under the MIT licence; the full text is in
+vendor/LICENSE-katex.txt (Copyright (c) 2013-2020 Khan Academy and other contributors,
+plus the mhchem authors). The upstream package ships no separate licence file for this
+artifact.
+
+Loading requirements (MarkView)
+-------------------------------
+The script registers \ce (and \pu) into the KaTeX instance that already exists on the
+page, so it MUST be loaded after vendor/katex.min.js and before the viewer script starts
+rendering formulas - see the <script> order in index.html.
