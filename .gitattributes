@@ -21,3 +21,9 @@ gradlew.bat text eol=crlf
 *.ttf binary
 *.otf binary
 *.zip binary
+
+# GitHub language statistics: the bundled renderers, their stylesheet and fonts are
+# third-party builds, not project code.
+app/src/main/assets/markview/vendor/* linguist-vendored
+app/src/main/assets/markview/css/katex.min.css linguist-vendored
+app/src/main/assets/markview/css/fonts/* linguist-vendored
