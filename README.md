@@ -176,7 +176,7 @@ tools/icon-preview.py        用标准库把启动图标渲染成 PNG 预览（P
 | `local.properties` | 本机 SDK 路径 |
 | `app/build/`、`.gradle/`、`.kotlin/` | 构建缓存与中间产物 |
 | `tools/icon-preview.png` | 由 `tools/icon-preview.py` 生成 |
-| `chat-export-*.md`、`markview-log.txt` | 个人对话导出与 logcat 收集文件 |
+| `.pi-wechat-files/`、`chat-export-*.md`、`markview-log.txt` | 微信桥接收到的文件、个人对话导出与 logcat 收集文件 |
 
 ---
 
