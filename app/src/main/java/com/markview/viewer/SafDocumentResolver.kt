@@ -10,6 +10,7 @@ import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.InputStream
+import java.security.MessageDigest
 import java.util.Collections
 import kotlin.math.abs
 
@@ -67,6 +68,8 @@ class SafDocumentResolver(context: Context) {
         DOCUMENT_ID_SEARCH,
         URI_SEARCH,
         CONTENT_IDENTITY,
+        /** The same file, proven by content, delivered by a *different* provider (MV-14). */
+        CONTENT_IDENTITY_CROSS_PROVIDER,
     }
 
     private class TreeAssociation(
@@ -321,6 +324,11 @@ class SafDocumentResolver(context: Context) {
         contentResolver.persistedUriPermissions
             .filter { it.isReadPermission }
             .map { it.uri }
+            // MV-14: only real tree grants can serve as a resolution base. The same system list
+            // also holds a persisted grant for every single document that ever arrived from
+            // outside (a shared file, a media item opened with MarkView), and those were skipped
+            // one by one on every open.
+            .filter { DocumentsContract.isTreeUri(it) }
     }.getOrDefault(emptyList())
 
     private fun findTreeAssociation(documentUri: Uri): TreeAssociation? {
@@ -408,20 +416,34 @@ class SafDocumentResolver(context: Context) {
             return preferred
         }
 
-        when {
-            identityCandidates.size == 1 -> {
-                log("tree association by content identity: ${identityCandidates[0].treeUri}")
-                return identityCandidates[0]
-            }
-            identityCandidates.size > 1 -> {
-                log("tree association ambiguous: ${identityCandidates.size} equally named files, refusing to guess")
-                return null
-            }
-            else -> {
-                log("tree association: none (relative resources will be reported as missing)")
-                return null
-            }
+        // Same-provider content identity (name + size + modification time): the cheapest
+        // attribution, and the one the first round already used. A unique candidate wins here
+        // exactly as before.
+        ContentIdentityPolicy.uniqueOrNull(identityCandidates)?.let { unique ->
+            log("tree association by content identity: ${unique.treeUri}")
+            return unique
         }
+        if (identityCandidates.size > 1) {
+            log("tree identity is ambiguous in one provider (${identityCandidates.size} equally named files), comparing content")
+        }
+
+        // Pass 3 (MV-14): the delivered document may come from a provider that owns none of the
+        // authorised trees — a file manager's own FileProvider, the downloads provider, a share
+        // sheet's cached copy. Document ids are useless there (absent, or belonging to another
+        // provider), so the file is located by name and *proved* by its content: the digest of
+        // the delivered bytes must equal the digest of a file inside an authorised tree.
+        val digestAssociations = contentIdentityAssociations(trees, metadata, documentUri)
+        ContentIdentityPolicy.uniqueOrNull(digestAssociations)?.let { unique ->
+            log("tree association by content digest (cross-provider): ${unique.treeUri}")
+            return unique
+        }
+        if (digestAssociations.size > 1) {
+            log("tree association ambiguous by content digest: ${digestAssociations.size} identical files, refusing to guess")
+            return null
+        }
+
+        log("tree association: none (relative resources will be reported as missing)")
+        return null
     }
 
     /** Document-id equality or a hierarchical id path below the tree root; no traversal. */
@@ -540,6 +562,161 @@ class SafDocumentResolver(context: Context) {
         return true
     }
 
+    // ------------------------------------------------- content identity (MV-14)
+
+    /** A file inside an authorised tree whose name (and size) matches the delivered document. */
+    private class NameCandidate(
+        val documentId: String,
+        val uri: Uri,
+        val size: Long,
+        val chain: List<String>,
+    )
+
+    private class NameSearchOutcome(val candidates: List<NameCandidate>, val inspected: Int)
+
+    /**
+     * Bounded breadth-first search of one tree for files called [name], narrowed further by
+     * [size] when the delivering provider reports one.
+     *
+     * A name only *narrows* the candidates here: [ContentIdentityPolicy.isSameContent] compares
+     * the bytes before anything is bound, so a same-named file is never accepted on its own
+     * (MV-01: never guess). The bounds are the ones the exact search already uses — depth and
+     * entries per open — plus a cap on candidates per tree, so a huge tree still cannot stall
+     * opening a document.
+     */
+    private fun searchTreeByName(
+        treeUri: Uri,
+        rootDocumentId: String,
+        name: String,
+        size: Long?,
+    ): NameSearchOutcome {
+        val candidates = ArrayList<NameCandidate>()
+        val queue = ArrayDeque<Pair<String, List<String>>>()
+        queue.addLast(rootDocumentId to listOf(rootDocumentId))
+        var inspected = 0
+
+        while (queue.isNotEmpty() && inspected < SEARCH_BUDGET && candidates.size <= IDENTITY_READ_BUDGET) {
+            val (directoryId, chain) = queue.removeFirst()
+            if (chain.size > MAX_SEARCH_DEPTH) continue
+            val children = listChildren(treeUri, directoryId) ?: continue
+            for (child in children) {
+                inspected++
+                if (!child.isDirectory &&
+                    ContentIdentityPolicy.namesAgree(name, child.name) &&
+                    ContentIdentityPolicy.sizesAgree(size, child.size)
+                ) {
+                    candidates.add(NameCandidate(child.documentId, child.uri, child.size, chain))
+                }
+                if (child.isDirectory) {
+                    queue.addLast(child.documentId to (chain + child.documentId))
+                }
+                if (inspected >= SEARCH_BUDGET) break
+            }
+        }
+        return NameSearchOutcome(candidates, inspected)
+    }
+
+    /**
+     * SHA-256 over up to [IDENTITY_DIGEST_BYTES] bytes of [uri]. `truncated` marks a file that
+     * continues past that window, in which case the reported sizes have to agree as well — see
+     * [ContentIdentityPolicy.isSameContent]. Returning `null` means "not readable", i.e. simply
+     * no match; it is never turned into an error.
+     */
+    private fun fingerprintOf(uri: Uri, sizeHint: Long?): ContentFingerprint? = runCatching {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val buffer = ByteArray(READ_CHUNK_BYTES)
+        var total = 0
+        var truncated = false
+        val stream = contentResolver.openInputStream(uri) ?: return null
+        stream.use { input ->
+            while (total < IDENTITY_DIGEST_BYTES) {
+                val limit = minOf(buffer.size, IDENTITY_DIGEST_BYTES - total)
+                val read = input.read(buffer, 0, limit)
+                if (read <= 0) break
+                digest.update(buffer, 0, read)
+                total += read
+            }
+            // A single byte past the window proves the file is longer than the digest covers.
+            truncated = input.read() >= 0
+        }
+        ContentFingerprint(
+            size = if (truncated) sizeHint?.takeIf { it >= 0 } else total.toLong(),
+            digest = hexOf(digest.digest()),
+            truncated = truncated,
+        )
+    }.getOrElse { error ->
+        log("content digest failed for $uri (${error.message})")
+        null
+    }
+
+    private fun hexOf(bytes: ByteArray): String {
+        val text = StringBuilder(bytes.size * 2)
+        for (byte in bytes) {
+            val value = byte.toInt() and 0xFF
+            text.append(HEX_DIGITS[value ushr 4]).append(HEX_DIGITS[value and 0x0F])
+        }
+        return text.toString()
+    }
+
+    /**
+     * Looks for the delivered document in **every** authorised tree, whatever provider it came
+     * from, and proves each candidate by content.
+     *
+     * Matches are grouped by document id, so the *same* file reached through two nested
+     * authorised trees counts once and the outermost tree wins — the rule [pickPreferred]
+     * already implements for the id-based passes. What is left has to be a single file; several
+     * identical files mean the document cannot be attributed to one directory, and binding any
+     * of them would attach the wrong relative resources.
+     */
+    private fun contentIdentityAssociations(
+        trees: List<Uri>,
+        metadata: DocumentMetadata,
+        documentUri: Uri,
+    ): List<TreeAssociation> {
+        val name = metadata.name
+        if (name.isNullOrBlank()) {
+            log("content identity: the provider reports no file name, cannot locate the document")
+            return emptyList()
+        }
+        val reportedSize = metadata.size?.takeIf { it >= 0 }
+        val byDocumentId = LinkedHashMap<String, TreeAssociation>()
+        var targetFingerprint: ContentFingerprint? = null
+
+        for (treeUri in trees) {
+            val treeDocumentId = runCatching { DocumentsContract.getTreeDocumentId(treeUri) }.getOrNull()
+                ?: continue
+            val outcome = searchTreeByName(treeUri, treeDocumentId, name, reportedSize)
+            if (outcome.candidates.isEmpty()) continue
+            log(
+                "content identity: ${outcome.candidates.size} file(s) named '$name' in $treeUri" +
+                    " (${outcome.inspected} entries inspected)",
+            )
+
+            if (targetFingerprint == null) {
+                targetFingerprint = fingerprintOf(documentUri, reportedSize)
+                if (targetFingerprint == null) {
+                    log("content identity: the delivered document cannot be read, no match possible")
+                    return emptyList()
+                }
+            }
+
+            var compared = 0
+            for (candidate in outcome.candidates) {
+                if (compared >= IDENTITY_READ_BUDGET) break
+                val candidateFingerprint = fingerprintOf(candidate.uri, candidate.size) ?: continue
+                compared++
+                if (!ContentIdentityPolicy.isSameContent(targetFingerprint, candidateFingerprint)) continue
+                val association =
+                    TreeAssociation(treeUri, candidate.chain, MatchKind.CONTENT_IDENTITY_CROSS_PROVIDER)
+                val existing = byDocumentId[candidate.documentId]
+                byDocumentId[candidate.documentId] =
+                    if (existing == null) association else pickPreferred(existing, association)
+                log("content identity confirmed: ${candidate.uri} via $treeUri")
+            }
+        }
+        return byDocumentId.values.toList()
+    }
+
     private fun findChildByName(treeUri: Uri, directoryDocumentId: String, name: String): ChildEntry? {
         val children = listChildren(treeUri, directoryDocumentId) ?: return null
         children.firstOrNull { it.name == name }?.let { return it }
@@ -616,5 +793,10 @@ class SafDocumentResolver(context: Context) {
         const val UNKNOWN_SIZE = -1L
         const val UNKNOWN_MODIFIED = -1L
         const val LAST_MODIFIED_TOLERANCE_MS = 2000L
+
+        /** Digest window and read cap for the cross-provider content identity pass (MV-14). */
+        const val IDENTITY_DIGEST_BYTES = 256 * 1024
+        const val IDENTITY_READ_BUDGET = 8
+        val HEX_DIGITS = "0123456789abcdef".toCharArray()
     }
 }

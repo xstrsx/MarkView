@@ -67,7 +67,8 @@ from a fresh clone. `smoke5.js` prefers a *local* `test/化学方程式测试.md
 directory is review material and is deliberately not tracked), and falls back to the shipped copy
 otherwise.
 
-`smoke6.js` — third round of real-device findings (MV-07 / MV-08 / MV-09 / MV-10 / MV-11).
+`smoke6.js` — third and fourth rounds of real-device findings (MV-07 / MV-08 / MV-09 / MV-10 /
+MV-11 and MV-14).
 It renders every writing style of `test/化学.md` and asserts which ones are display blocks and
 which stay inline, that the inline wrapper only becomes a scroll container when the measurement
 says it overflows (driven through the page's internal `__adjustInlineMath` hook with stubbed
@@ -82,6 +83,13 @@ so both scripts assert the documented *fallback* instead: the original code is k
 and the rest of the document still renders. That is exactly the failure isolation
 required by project book §6.6.
 
-Last run on the delivered build (1.0.7): **PASS** (25 assertions in `smoke.js`, 10 in
-`smoke2.js`, 26 in `smoke3.js`, 32 in `smoke4.js`, 49 in `smoke5.js`, 48 in `smoke6.js`
-— 190 in total).
+MV-14 is the system open/share entry point, which lives in Kotlin: those assertions read
+`SafDocumentResolver.kt`, `MainActivity.kt` and `ContentIdentity.kt` and pin the *structure* of
+the fix (a content-digest pass that only binds after comparing bytes, bounded reads, tree grants
+only, the persisted grant taken in one place after the Markdown check, and grants released when a
+document leaves the stack). The matching rules themselves are unit-tested
+(`ContentIdentityPolicyTest`); the SAF behaviour still needs a device.
+
+Last run on the delivered build (1.0.8): **PASS** (25 assertions in `smoke.js`, 10 in
+`smoke2.js`, 26 in `smoke3.js`, 32 in `smoke4.js`, 49 in `smoke5.js`, 57 in `smoke6.js`
+— 199 in total).

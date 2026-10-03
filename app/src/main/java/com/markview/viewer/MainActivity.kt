@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
+import android.provider.DocumentsContract
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -207,8 +208,6 @@ class MainActivity : ComponentActivity(), HomeController.Host, ViewerController.
     }
 
     private fun onDocumentPicked(uri: Uri) {
-        // Best effort: keeps the document valid if the process is later restarted.
-        tryTakePersistablePermission(uri)
         openDocumentUri(
             uri = uri,
             declaredMimeType = null,
@@ -271,7 +270,8 @@ class MainActivity : ComponentActivity(), HomeController.Host, ViewerController.
                     toast(getString(R.string.toast_content_uri_only))
                     return
                 }
-                tryTakePersistablePermission(uri)
+                // MV-14 (small change 1): the persisted grant is taken further down, once the
+                // document is known to be Markdown and is not already covered by a tree grant.
                 val entry = if (parsed.fromShare) ENTRY_SHARE else ENTRY_VIEW
                 openDocumentUri(uri, parsed.mimeType, parsed.displayName, replaceStack = true, entry = entry)
             }
@@ -317,21 +317,81 @@ class MainActivity : ComponentActivity(), HomeController.Host, ViewerController.
                     " chainDepth=${document.ancestorDocumentIds.size}" +
                     " fromTree=${document.fromAuthorizedTree} replaceStack=$replaceStack"
             )
-            if (replaceStack) documentStack.clear()
-            documentStack.push(document)
+            // MV-14 (small change 1): only a document that is really displayed *and* is read
+            // through the provider that delivered it needs its own persisted grant — a document
+            // inside an authorised tree is already covered by the tree grant. Taking it earlier,
+            // before the file was even known to be Markdown, is what left a permission behind
+            // for every image ever shared or picked into MarkView.
+            if (needsOwnPersistableGrant(document.uri, document.treeUri)) {
+                tryTakePersistablePermission(document.uri)
+                Log.d(TAG, "persist grant: taken for ${document.uri}")
+            }
+            if (replaceStack) {
+                // Documents dropped by this open lose their persisted grant (small change 3a).
+                val dropped = documentStack.snapshots()
+                documentStack.clear()
+                documentStack.push(document)
+                releaseLeftStackGrants(dropped)
+            } else {
+                documentStack.push(document)
+            }
             showViewer()
             viewer.show(document)
         }
     }
 
     private fun popDocument() {
+        // Captured before the pop so the document that leaves the stack can release its grant.
+        val before = documentStack.snapshots()
         val previous = documentStack.pop()
         if (previous == null) {
             documentStack.clear()
             showHome()
-            return
+        } else {
+            viewer.show(previous)
         }
-        viewer.show(previous)
+        releaseLeftStackGrants(before)
+    }
+
+    /**
+     * MV-14 (small change 3a): a document that left the document stack has no reason to keep a
+     * persisted read grant, so it is released here instead of accumulating in the system list.
+     *
+     * Documents still in the stack are never touched — that grant is what lets a re-created
+     * activity read the document again — and a document reached through an authorised tree does
+     * not need one of its own. Nothing is released on a configuration change, because the stack
+     * survives it.
+     */
+    private fun releaseLeftStackGrants(before: List<DocumentSnapshot>) {
+        if (before.isEmpty()) return
+        val kept = HashSet<String>()
+        for (snapshot in documentStack.snapshots()) kept.add(snapshot.uri)
+        for (snapshot in before) {
+            if (snapshot.uri in kept) continue
+            val uri = snapshot.uri.toUri()
+            if (DocumentsContract.isTreeUri(uri)) continue
+            if (!needsOwnPersistableGrant(uri, snapshot.treeUri?.toUri())) continue
+            releasePersistableGrant(uri)
+        }
+    }
+
+    private fun releasePersistableGrant(uri: Uri) {
+        val released = runCatching {
+            contentResolver.releasePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            true
+        }.getOrDefault(false)
+        Log.d(TAG, "grant release: uri=$uri released=$released")
+    }
+
+    /**
+     * True when the document is read through the provider that delivered it (a shared file, a
+     * file manager's own FileProvider) rather than through an authorised tree, whose grant
+     * already covers it. Identifiers are only comparable inside one provider, so "same
+     * authority as the tree" is exactly the case the tree grant covers (see [TreePathPolicy]).
+     */
+    private fun needsOwnPersistableGrant(uri: Uri, treeUri: Uri?): Boolean {
+        if (treeUri == null) return true
+        return !TreePathPolicy.sameAuthority(uri.authority, treeUri.authority)
     }
 
     private fun tryTakePersistablePermission(uri: Uri) {

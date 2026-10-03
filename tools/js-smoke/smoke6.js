@@ -91,6 +91,11 @@ function count(node, selector) {
   return node.querySelectorAll(selector).length;
 }
 
+/** Occurrences of `needle` in `source`; used to pin Kotlin call sites the page cannot reach. */
+function countCalls(source, needle) {
+  return source.split(needle).length - 1;
+}
+
 const css = fs.readFileSync(path.join(ASSETS, "css/markview.css"), "utf8");
 const katexCss = fs.readFileSync(path.join(ASSETS, "css/katex.min.css"), "utf8");
 const indexHtml = fs.readFileSync(path.join(ASSETS, "index.html"), "utf8");
@@ -102,6 +107,14 @@ const mainActivity = fs.readFileSync(
 );
 const webViewFactory = fs.readFileSync(
   path.join(PROJECT, "app/src/main/java/com/markview/viewer/WebViewFactory.kt"),
+  "utf8",
+);
+const documentResolver = fs.readFileSync(
+  path.join(PROJECT, "app/src/main/java/com/markview/viewer/SafDocumentResolver.kt"),
+  "utf8",
+);
+const contentIdentity = fs.readFileSync(
+  path.join(PROJECT, "app/src/main/java/com/markview/viewer/ContentIdentity.kt"),
   "utf8",
 );
 
@@ -268,6 +281,49 @@ const webViewFactory = fs.readFileSync(
     "onNewIntent logs action, categories and whether a file came with it",
   );
   check(/documentsOnStack=\$\{documentStack\.size\}/.test(mainActivity), "…plus the document stack depth at the second entry point");
+
+  console.log("\nMV-14 cross-provider documents (source invariants; device behaviour still needs a device):");
+  check(
+    /CONTENT_IDENTITY_CROSS_PROVIDER/.test(documentResolver) &&
+      /contentIdentityAssociations\(trees, metadata, documentUri\)/.test(documentResolver),
+    "the resolver has a content-identity pass for documents from another provider",
+  );
+  check(
+    /contentIdentityAssociations[\s\S]{0,3000}?ContentIdentityPolicy\.isSameContent\(targetFingerprint, candidateFingerprint\)/.test(documentResolver),
+    "…and binds only after the bytes of both sides were compared",
+  );
+  check(
+    /MessageDigest\.getInstance\("SHA-256"\)/.test(documentResolver) &&
+      /IDENTITY_DIGEST_BYTES/.test(documentResolver) &&
+      /IDENTITY_READ_BUDGET/.test(documentResolver),
+    "the comparison is a SHA-256 over a bounded window, with a cap on how many files are read",
+  );
+  check(
+    /\.filter \{ DocumentsContract\.isTreeUri\(it\) \}/.test(documentResolver),
+    "only real tree grants are used as a resolution base (single-document grants are skipped)",
+  );
+  check(
+    (contentIdentity.match(/fun (?:<[^>]+> )?(namesAgree|sizesAgree|isSameContent|uniqueOrNull)/g) || []).length === 4,
+    "the matching rules live in the testable ContentIdentityPolicy",
+  );
+  check(
+    countCalls(mainActivity, "tryTakePersistablePermission(") === 2,
+    "the persisted grant is taken in exactly one place (its definition plus one call site)",
+  );
+  const rejectedAt = mainActivity.indexOf("open($entry) rejected");
+  const persistAt = mainActivity.indexOf("needsOwnPersistableGrant(document.uri, document.treeUri)");
+  check(
+    rejectedAt > 0 && persistAt > rejectedAt,
+    "…after the document was accepted as Markdown, and only when no tree grant covers it",
+  );
+  check(
+    /private fun releaseLeftStackGrants[\s\S]{0,600}?DocumentsContract\.isTreeUri\(uri\)[\s\S]{0,300}?needsOwnPersistableGrant[\s\S]{0,200}?releasePersistableGrant\(uri\)/.test(mainActivity),
+    "a document that left the stack releases its own grant (never a tree, never a stacked document)",
+  );
+  check(
+    countCalls(mainActivity, "releaseLeftStackGrants(") === 3,
+    "…from both places where documents leave the stack (its definition, replaceStack and back)",
+  );
 
   console.log("\ndiagnostics (" + notes.length + "):");
   for (const note of notes.slice(0, 10)) console.log("  - " + note.slice(0, 150));

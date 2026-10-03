@@ -1,12 +1,16 @@
-# MarkView 1.0.7 构建与交付说明
+# MarkView 1.0.8 构建与交付说明
 
 对应项目书：`MarkView-一次落地项目书.md`（§12 自动化检查、§13 签名与交付要求），
 `test/MarkView-首轮测试错误报告.md`（MV-01 ~ MV-04）、
 `test/MarkView-第二轮测试错误报告.md`（MV-05、MV-06）与
 `test/MarkView-第三轮测试错误报告.md`（MV-07 ~ MV-13）。
 
-本轮（1.0.7）修复 **MV-07 / MV-08 / MV-09 / MV-10 / MV-11**，并把打包的 Mermaid 从 11.12.0
-升级到 11.17.2；**MV-12 / MV-13 按指示不做**（大改 / 新契约），理由与证据见 §12。
+1.0.7 修复 **MV-07 / MV-08 / MV-09 / MV-10 / MV-11**，并把打包的 Mermaid 从 11.12.0 升级到
+11.17.2；**MV-12 / MV-13 按指示不做**（大改 / 新契约），理由与证据见 §12。
+
+1.0.8 修复 **MV-14**（系统"打开方式 / 分享"打开的文档无法加载相对图片与内联文件，根因是
+跨 provider 无法关联已授权 tree），并落地三项小改动（持久化授权只在确认为 Markdown 且不被
+tree 覆盖时写入、只把真正的 tree 授权当作解析基准、文档离开文档栈时释放自己的授权）；见 §13。
 逐条查证过程（含无头复现命令与结论）另见 `MarkView-第三轮查证记录.md`。
 
 > **仓库内容说明**：`test/`（各轮测试报告、真机截图与评审夹具）是本地评审素材，**不入库**；
@@ -18,24 +22,24 @@
 
 | 文件 | 说明 |
 | --- | --- |
-| `MarkView-1.0.7-release.apk` | **本次交付的 release 签名 APK** |
-| `MarkView-1.0.7-release.apk.idsig` | APK Signature Scheme v4 旁挂文件，仅 `adb install --incremental` 需要；不安装也能正常使用 |
-| `SHA256.txt` | 上列文件的 SHA-256（并保留 1.0.0 ~ 1.0.6 的哈希供比对） |
+| `MarkView-1.0.8-release.apk` | **本次交付的 release 签名 APK** |
+| `MarkView-1.0.8-release.apk.idsig` | APK Signature Scheme v4 旁挂文件，仅 `adb install --incremental` 需要；不安装也能正常使用 |
+| `SHA256.txt` | 上列文件的 SHA-256（并保留 1.0.0 ~ 1.0.7 的哈希供比对） |
 | 源码 | 本目录的完整 Gradle 工程（含 Wrapper） |
 
 绝对路径：
 
 ```text
-/home/xstrsx/project/MarkView/MarkView-1.0.7-release.apk
+/home/xstrsx/project/MarkView/MarkView-1.0.8-release.apk
 ```
 
-- applicationId：`com.markview.viewer`（与 1.0.0 ~ 1.0.6 相同，可直接覆盖升级）
-- versionName / versionCode：`1.0.7` / `8`
-- APK 大小：3,503,238 字节
-- SHA-256：`b08efd3785c5f9be22e042f326dde16db8765612778f5dd14af72fa0ca366658`
+- applicationId：`com.markview.viewer`（与 1.0.0 ~ 1.0.7 相同，可直接覆盖升级）
+- versionName / versionCode：`1.0.8` / `9`
+- APK 大小：3,508,105 字节
+- SHA-256：`076d7c75d1efcef56c19a482a3dfb31051953e71798c52bfac0c3e7403ef91ae`
 - minSdk 26 / targetSdk 35 / compileSdk 36
 
-1.0.0 ~ 1.0.6 的 APK 仅保留作对照，**请安装 1.0.7**（后装旧版会被系统视为降级；
+1.0.0 ~ 1.0.7 的 APK 仅保留作对照，**请安装 1.0.8**（后装旧版会被系统视为降级；
 1.0.3 的图标是被回退掉的 Markdown 标记版本）。
 
 ## 2. 签名
@@ -60,7 +64,7 @@ Signer #1 key algorithm: RSA (4096 bit)
 Signer #1 certificate SHA-256 digest: b0aef553d91efe8ec8bc5e5810a99306501081d2d694138c0b40c01a997e3249
 ```
 
-- **与 1.0.0 ~ 1.0.6 使用同一把 release 密钥**（证书 SHA-256 完全一致），可覆盖升级；
+- **与 1.0.0 ~ 1.0.7 使用同一把 release 密钥**（证书 SHA-256 完全一致），可覆盖升级；
   未换成 debug 密钥，密钥未缺失。
 - v2 / v3 / v4 均通过；v1 报告为 false 属预期（minSdk 26，AGP 不写入 v1）。
   注意 v4 只有在命令行显式给出 `.idsig`（如上）时才校验；不带该参数时报告为 false，这不是签名问题。
@@ -325,9 +329,9 @@ APK 内已核对（`aapt2 dump xmltree`）：自适应图标三层齐全；前�
 ## 8. 已执行的检查与结果
 
 ```text
-./gradlew test              成功；单元测试 33 个用例 × debug/release 两个变体 = 66 次执行，0 失败
+./gradlew test              成功；单元测试 39 个用例 × debug/release 两个变体 = 78 次执行，0 失败
 ./gradlew lint              成功；0 error，1 warning（仅 OldTargetApi，见 §11）
-./gradlew assembleRelease   成功；已生成 1.0.7 release 签名 APK（versionCode 8）
+./gradlew assembleRelease   成功；已生成 1.0.8 release 签名 APK（versionCode 9）
 ./gradlew assembleDebugAndroidTest  成功（androidTest 源码可编译；无真机未运行）
 ```
 
@@ -337,8 +341,8 @@ APK 校验（Build-Tools 36.0.0）：
 zipalign -c 4                                        → Verification successful
 apksigner verify --print-certs                       → Verifies（v2/v3）
 apksigner verify --v4-signature-file ...idsig        → Verifies（v2/v3/v4）
-aapt2 dump badging                                   → com.markview.viewer, versionCode=8,
-                                                       versionName=1.0.7, minSdk=26, targetSdk=35
+aapt2 dump badging                                   → com.markview.viewer, versionCode=9,
+                                                       versionName=1.0.8, minSdk=26, targetSdk=35
 APK 资源检查（zip 内容）                              → vendor/katex-mhchem.min.js 33,712 字节、
                                                        vendor/katex.min.js、css/katex.min.css、
                                                        20 个 KaTeX woff2 字体、两份许可说明均已打包；
@@ -364,6 +368,10 @@ zip 内容核对（本轮资产）                              → assets/markv
                                                        .katex-display 为 block/max-content/min-width:100%
 npm registry integrity 校验                          → mermaid 11.17.2 tarball 的 sha512 与 sha1 均与
                                                        registry 公布值一致，解包文件与 APK 逐字节相同
+dex 内字符串核对（1.0.8）                             → 新增代码确实进入 APK：匹配种类
+                                                       "CONTENT_IDENTITY_CROSS_PROVIDER"、
+                                                       "content identity confirmed"、
+                                                       "grant release:"、"persist grant: taken for"
 sha256sum                                            → 见 SHA256.txt
 ```
 
@@ -401,7 +409,7 @@ smoke4.js  32 项断言通过 —— MV-05/MV-06 专项：
              · refit 幂等、无结构时不抛错；
              · C1( 仍降级且其后结构式继续渲染；Mermaid/KaTeX/普通图片与缺图占位无回归；
              · CSS 断言：`max-width: none`、居中、`overflow-x: auto`、无 `touch-action`。
-smoke6.js  48 项断言通过 —— 第三轮回归（MV-07 / MV-08 / MV-09 / MV-10 / MV-11）：
+smoke6.js  57 项断言通过 —— 第三轮回归（MV-07 / MV-08 / MV-09 / MV-10 / MV-11 / MV-14）：
              · MV-08：viewport 已是 maximum-scale=1 + user-scalable=no，且 WebViewFactory 仍
                拒绝缩放（setSupportZoom(false)、builtInZoomControls=false），textZoom 保留
                （系统字体缩放的可用性没有被取消）；
@@ -416,7 +424,11 @@ smoke6.js  48 项断言通过 —— 第三轮回归（MV-07 / MV-08 / MV-09 / M
                两者都保留原始代码、错误都仍进日志；markview.js 的 MERMAID_VERSION 与 bundle 内
                版本串一致（防静默换包的漂移哨兵），且打包的 mermaid 确实认得 swimlane-beta；
              · MV-07（源码不变量，真机行为仍需真机）：分享提示只在 ACTION_SEND 时给出、
-               onCreate 只在非重建时消费 Intent、onNewIntent 记录 action/categories/附件/重建标志。
+               onCreate 只在非重建时消费 Intent、onNewIntent 记录 action/categories/附件/重建标志；
+             · MV-14（源码不变量，SAF 行为仍需真机）：解析器存在跨 provider 的内容同一性通道、
+               仅在比对过两边内容后才绑定、摘要为有界窗口的 SHA-256 且读取数量有上限、
+               只有真正的 tree 授权被当作解析基准、持久化授权只有一处调用点且在 Markdown 校验之后、
+               离开文档栈时释放自己的授权且从不释放 tree 或栈内文档。
 ```
 
 **未执行的检查**：真机 / 模拟器上的 WebView 渲染与**触摸**验证（本机 `adb devices` 为空）。
@@ -464,6 +476,20 @@ MV-07 的 Intent 分流（点桌面图标不再弹提示、切深色后返回键
 - 首轮项目请一并复核（上一轮截图不足以确认）：乙醇/苯/阿司匹林完整结构，
   以及"系统打开方式"入口下的相对 SVG。
 
+第四轮（1.0.8，MV-14 与三项小改动）：
+
+- 用 **MT 管理器**（或任何自带 FileProvider 的文件管理器）"打开方式 → MarkView"打开
+  `全面.md`：相对图片与相对链接应**正常**；日志应出现 `tree association by content digest
+  (cross-provider)`、`content identity confirmed: …`、随后 `relative: '…' -> content://…`；
+- 同一次日志里 `tree lookup: … persistedTrees=N` 的 N 应为 **1**（只剩测试文件夹，
+  此前是 6）；打开第二份文档或按返回后应出现 `grant release: …`；
+- **进程被杀后的恢复**：打开一个共享文档 → 回桌面 → `adb shell am kill com.markview.viewer`
+  → 从最近任务切回 → 文档仍应正常显示（证明栈内文档的授权没被误释放）；
+- **仍应失败（不是缺陷）**：文件不在任何已授权目录内；系统送来的内容与已授权目录里那份
+  **字节不同**；同一内容在多个已授权目录里都存在（拒绝猜测）；文件在已授权目录内**深度 > 8**
+  或目录内条目 > 3000（有界搜索预算）。这四种情况请顺便复核一次，确认它们**优雅失败**
+  （正文照常显示、图片显示"图片不可用"占位符、不闪退）。
+
 出现问题时按"可复现输入、设备型号、Android/WebView 版本、来源 URI 类型、期望行为、实际行为"记录，
 并附上 logcat（`adb logcat -s MarkView:D`，见 §10）。
 
@@ -507,6 +533,15 @@ SMILES 相关的问题还会带上 `smiles sizing failed (...)` 一类信息。
     请按 §10 提供文档与 logcat——需要设备侧数据才能定位（见 §12.2）。
 12. **MV-12 / MV-13 未做**：分子布局质量需要更换算法/库（大改）；多行 / 带名称 SMILES 属新增契约。
     查证结论与可选方案见 §12.6。
+13. **跨 provider 的文档（1.0.8 起支持，但有边界）**：系统"打开方式/分享"送来的文档若与某个
+    已授权目录内的文件**内容一致**（同名 + 摘要相同，大小在可得时也须一致），就会把相对资源基准
+    绑到该目录；若内容不同、或同一内容在多个已授权目录中都存在、或文件位于授权目录内 8 层以上
+    /目录条目超过 3000，则仍按"缺图降级"处理（绝不按名字猜测）。文件名被改写的副本（如
+    `文档 (1).md`）匹配不上，这是有意为之。详见 §13。
+14. **系统里可能残留历史单文档授权**：1.0.8 起不再为"不是 Markdown 的文件"或"已被授权目录覆盖的
+    文档"写授权，并且文档离开文档栈时会释放自己的授权；但**此前版本留下的授权**（例如曾分享给
+    MarkView 的图片）不会被自动清理（按你的选择跳过一次性清理）。它们不影响功能，只让日志里的
+    `persistedTrees` 计数偏大；要清掉可在系统里清除应用数据。
 
 ---
 
@@ -607,3 +642,92 @@ KaTeX 隐藏 `<annotation>`（处于 1px 裁剪的 `.katex-mathml` 内）与 mer
 
 本轮**没有**采用第三轮报告禁止的手段：未隐藏错误提示、未裁掉溢出内容、未删除公式标签、
 未放松安全策略（`trust:false`、CSP、协议拦截、SAF 边界均未改动）、未用根级 `overflow-x:hidden` 掩盖溢出。
+
+---
+
+## 13. MV-14：系统"打开方式 / 分享"打开的文档看不到相对图片与内联文件（1.0.8 修复）
+
+### 现象
+
+文件夹已授权；从应用内"打开文件"选择同一份文档时相对图片与相对链接都正常，
+但从系统"打开方式"（文件管理器）或"系统分享"打开时，**正文正常显示，所有相对图片变成
+"图片不可用"占位符，相对链接点击提示"相对链接不可用"**。
+
+### 设备日志（决定性证据）
+
+用户提供的 logcat（`adb logcat -s MarkView:D`，原始文件在 `.pi-wechat-files/`，不入库）：
+
+```text
+onCreate: action=android.intent.action.VIEW type=text/plain
+  data=content://bin.mt.plus.fp/storage/emulated/0/test/md/…/MarkView测试包/全面.md
+
+tree lookup: authority=bin.mt.plus.fp documentId=null uriTreeDocumentId=null
+             name=全面.md size=18177 modified=null persistedTrees=6
+  tree content://com.android.externalstorage.documents/tree/primary%3Atest%2Fmd%2F… skipped:
+       authority com.android.externalstorage.documents does not match bin.mt.plus.fp
+  （另 5 条授权 skipped: no tree document id —— 1 条 externalstorage 单文档 + 4 条 media 单文档）
+
+resolve: … authority=bin.mt.plus.fp documentId=null tree=null match=NONE chainDepth=0
+relative: '同目录.svg' skipped, document is not inside an authorised tree
+relative: './图片/测试.svg' …（共 10 条相对资源，全部 skipped）
+resource '…' not found under the authorised tree  × 12        成功注册资源次数: 0
+```
+
+判定：
+
+- 送来的 URI 来自 **MT 管理器自己的 FileProvider**（`bin.mt.plus.fp`），路径形 URI，
+  `documentId=null`；
+- 已授权 tree 属于 `com.android.externalstorage.documents`；
+- 旧规则要求"**文档的 provider authority == tree 的 authority**"才能建立关联
+  （`SafDocumentResolver.computeTreeAssociation` 的 authority 硬门），跨 provider 一律放弃 →
+  `treeUri = null` → `canResolveRelative = false` → 相对资源全部被拒（`resolveRelative` 的第一道门）。
+
+这不是报告里允许的"临时副本"豁免情形：MT 的 URI 指向的**就是原文件**（`/storage/emulated/0/…`），
+文件名与大小和 tree 内文件一致，而且 **tree 根恰好就是该文件所在目录**。
+
+### 修复内容（1.0.8）
+
+`SafDocumentResolver` 新增**第三遍：跨 provider 内容同一性**
+（`contentIdentityAssociations()` + `searchTreeByName()` + `fingerprintOf()`）：
+
+1. **只在**前两遍（同 authority 的 id 推导与有界遍历）都没有命中时运行 —— 常见路径的成本不变；
+2. 遍历**全部**已授权 tree，不再要求 authority 相同，也不再依赖 document id；
+3. 用文件名与（可得时的）大小**筛出候选**，再**读取两边内容做 SHA-256 比对**，相等才算命中；
+   名字只用于缩小范围，绝不单独作为依据（MV-01 的约束不变）；
+4. 候选按 document id 归并：同一文件经两个嵌套 tree 到达只算一次，并沿用"最外层 tree 优先"
+   （`pickPreferred`）；
+5. 归并后必须**唯一**，多个相同文件一律拒绝并写日志
+   （`tree association ambiguous by content digest … refusing to guess`）；
+6. 命中后只把**相对资源基准**（treeUri + 祖先链）绑到该 tree，**文档正文仍来自系统送来的 URI**。
+
+判定规则集中在纯函数对象 `ContentIdentityPolicy`（同名 / 大小 / 摘要 / 唯一性），有 6 个单测用例；
+摘要为**有界窗口**的 SHA-256（256 KB；超出窗口的文件额外要求大小一致），
+每棵树的候选读取数量有上限（8），并复用深度 ≤ 8、条目 ≤ 3000 的既有遍历预算。
+
+**连带项（按推荐做了）**：provider 不报 `SIZE` 时也能匹配 —— 摘要比对不依赖 size。
+
+**未做（按推荐不做）**：文件名被改写（如 `文档 (1).md`）的副本需要"按大小遍历并逐个读同大小文件"，
+代价与收益不成比例。
+
+### 同轮小改动
+
+| # | 改动 | 位置 |
+| --- | --- | --- |
+| 1 | 持久化授权只在"**确认是 Markdown** 且该 URI **不被已授权 tree 覆盖**"时写入；此前在校验之前写入，导致每次分享/误选图片都永久留下一条授权 | `MainActivity.openDocumentUri` |
+| 2 | `persistedTreeUris()` 用 `DocumentsContract.isTreeUri()` 过滤 —— 单文档授权不再进入关联查找（用户设备上 6 条授权里有 5 条是单文档授权，每次打开都要逐条跳过） | `SafDocumentResolver` |
+| 3a | 文档离开文档栈（换文档清栈、返回）时释放它自己的单文档授权；**栈内文档永不释放**，配置变化也不释放 | `MainActivity.releaseLeftStackGrants` |
+
+**未做**：3b（启动时一次性清理历史遗留授权）。那 5 条旧授权仍留在系统里，它们不影响功能，
+只会让日志里的 `persistedTrees` 计数偏大；需要时可清除应用数据。
+
+### 真机验证（必须，本机无法验证 SAF）
+
+1. 用 MT 管理器"打开方式 → MarkView"打开 `全面.md`：图片与相对链接应正常；
+   日志应出现 `tree association by content digest (cross-provider)`、`content identity confirmed: …`，
+   随后是 `relative: '…' -> content://…`；
+2. `tree lookup: … persistedTrees=N` 中的 N 应为 **1**（此前 6）；打开第二份文档或按返回后应出现
+   `grant release: …`；
+3. 进程被杀后的恢复：打开一个共享文档 → 回桌面 → `adb shell am kill com.markview.viewer` →
+   从最近任务切回 → 文档仍应正常显示；
+4. 四种"应当优雅失败"的情形各复核一次：文件不在任何已授权目录内、内容与目录内那份不同、
+   同一内容在多个已授权目录里都有、文件在目录内深度 > 8（正文照常、图片为占位符、不闪退）。

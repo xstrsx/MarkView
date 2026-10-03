@@ -347,6 +347,11 @@ var source = (codeNode.textContent || "").replace(/\s+/g, " ").trim();   // 整�
 
 ## 11. 本轮实施结果（1.0.7 / versionCode 8）
 
+> **后续轮次**：第四轮的 **MV-14**（系统"打开方式/分享"打开的文档看不到相对图片与内联文件）
+> 已用设备日志定位于"跨 provider 无法关联已授权 tree"，并在 **1.0.8** 修复
+> （跨 provider 内容摘要匹配 + 三项授权小改动）。根因证据、修法与真机验证步骤见
+> `BUILD-NOTES.md` §13。
+
 | 项 | 文件 | 改动 |
 | --- | --- | --- |
 | MV-07 | `MainActivity.kt` | 分享提示只在 `ACTION_SEND` 时给出；`recreated`（配置变化重建）时不再消费启动 Intent；`onNewIntent` 补 action / categories / 附件 / 重建标志 / 文档栈深度日志 |
