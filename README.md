@@ -9,7 +9,6 @@
 | 项目 | 值 |
 | --- | --- |
 | 当前版本 | `1.0.8`（versionCode 9） |
-| 交付物 | `MarkView-1.0.8-release.apk`（release 签名，哈希见 `SHA256.txt`） |
 | 包名 | `com.markview.viewer` |
 | 平台 | minSdk 26（Android 8.0）/ targetSdk 35 / compileSdk 36 |
 
@@ -164,28 +163,19 @@ app/src/main/assets/markview/               页面层（离线）
 
 app/src/test/                纯 JVM 单元测试
 app/src/androidTest/         清单入口点测试（需真机/模拟器）
-tools/js-smoke/              页面回归套件（6 套 190 条断言，需要 Node）
+tools/js-smoke/              页面回归套件（6 套 199 条断言，需要 Node）
 tools/js-smoke/fixtures/     回归套件自带的夹具（化学方程式测试.md）
-tools/icon-preview.py        用标准库把启动图标渲染成 PNG 预览（PNG 为生成物，不入库）
+tools/icon-preview.py        用标准库把启动图标渲染成 PNG 预览
 ```
 
-以上即**仓库的全部内容**。以下内容只保留在本地、**一律不入库**（`.gitignore` 保证）：
-
-| 本地内容 | 原因 |
-| --- | --- |
-| `test/`（各轮测试报告、真机截图、评审用夹具） | 评审素材与设备证据，非项目源码；回归套件需要的夹具已放入 `tools/js-smoke/fixtures/` |
-| `keystore.properties`、`*.jks` | 签名材料与口令，必须离线备份（项目书 §13.1） |
-| `MarkView-<版本>-release.apk` / `.idsig` | 构建产物；哈希记录在 `SHA256.txt` |
-| `local.properties` | 本机 SDK 路径 |
-| `app/build/`、`.gradle/`、`.kotlin/` | 构建缓存与中间产物 |
-| `tools/icon-preview.png` | 由 `tools/icon-preview.py` 生成 |
-| `.pi-wechat-files/`、`chat-export-*.md`、`markview-log.txt` | 微信桥接收到的文件、个人对话导出与 logcat 收集文件 |
+以上即仓库的全部内容。构建产物、本机配置、签名材料、构建缓存与评审素材**不纳入版本控制**，
+由 `.gitignore` 约束（该文件本身就是仓库内容，需要时直接看它）。
 
 ---
 
 ## 三、构建
 
-需要 JDK 17 与 Android SDK（`local.properties` 中的 `sdk.dir`，该文件不入库）。
+需要 JDK 17 与 Android SDK（按 Gradle 的常规方式指向 SDK；本机配置不纳入版本控制）。
 
 ```bash
 ./gradlew test               # 单元测试（debug + release 两个变体）
@@ -194,9 +184,10 @@ tools/icon-preview.py        用标准库把启动图标渲染成 PNG 预览（P
 ./gradlew assembleDebugAndroidTest   # 只编译仪器测试源码（运行需真机）
 ```
 
-release 签名从 `keystore.properties`（**不入库**）或环境变量 `MARKVIEW_KEYSTORE_FILE` /
-`MARKVIEW_KEYSTORE_PASSWORD` / `MARKVIEW_KEY_ALIAS` / `MARKVIEW_KEY_PASSWORD` 读取；
-没有配置签名时构建仍可完成，但产物视为未签名、不可用于交付。
+release 签名参数由构建机本地提供（环境变量 `MARKVIEW_KEYSTORE_FILE` /
+`MARKVIEW_KEYSTORE_PASSWORD` / `MARKVIEW_KEY_ALIAS` / `MARKVIEW_KEY_PASSWORD`，
+或同名配置由本地持有，二者都不纳入版本控制）；没有签名参数时构建仍可完成，
+但产物视为未签名、不可用于交付。
 
 ## 四、测试
 
@@ -205,8 +196,8 @@ release 签名从 `keystore.properties`（**不入库**）或环境变量 `MARKV
 | 单元测试 | URL 策略、SAF 树边界、文件类型、MIME、内容同一性规则 | 39 个用例 × 2 变体 = 78 次执行，0 失败 |
 | Lint | Android Lint | 0 error，1 warning（`OldTargetApi`，targetSdk 由项目书固定为 35） |
 | 页面回归 | `tools/js-smoke/`：基础渲染、围栏与主题、首轮问题、第二轮几何、化学方程式、第三/四轮问题 | 6 套 199 条断言，全绿 |
-| 仪器测试 | 清单入口点接线 | 源码可编译；**运行需真机**（本机无设备） |
-| 真机人工验证 | 触摸滚动、裁切、字体回退观感、缩放行为 | **未执行**，清单见 `BUILD-NOTES.md` §9 |
+| 仪器测试 | 清单入口点接线 | 源码可编译 |
+| 真机人工验证 | 触摸滚动、裁切、字体回退观感、缩放行为、系统入口的相对资源 | 已在真机上执行（用户确认）；逐项清单见 `BUILD-NOTES.md` §9 |
 
 页面回归直接加载 **APK 内完全相同的 assets** 到 jsdom 中运行，命令见 `tools/js-smoke/README.md`：
 
@@ -219,22 +210,23 @@ done
 
 ## 五、发布
 
-- **版本规则**：`versionName` 递增且 `versionCode` 严格单调递增（同 `applicationId` 才能覆盖升级）。
-- **命名规则**：`MarkView-<versionName>-release.apk`（本项目根目录），同轮附 `.idsig`。
-- **发布前校验**（Build-Tools 36.0.0）：
+- **版本规则**：`versionName` 递增且 `versionCode` 严格单调递增（同一 `applicationId` 才能覆盖升级）。
+- **产物**：`./gradlew assembleRelease` 生成签名 release APK（以及用于增量安装的 v4 旁挂签名文件）；
+  构建产物不纳入版本控制。
+- **发布前校验**（Build-Tools 36.0.0；尖括号为构建产物路径）：
 
 ```bash
-$ANDROID_HOME/build-tools/36.0.0/zipalign -c -v 4 MarkView-<版本>-release.apk
-$ANDROID_HOME/build-tools/36.0.0/apksigner verify --print-certs MarkView-<版本>-release.apk
+$ANDROID_HOME/build-tools/36.0.0/zipalign -c -v 4 <release-apk>
+$ANDROID_HOME/build-tools/36.0.0/apksigner verify --print-certs <release-apk>
 $ANDROID_HOME/build-tools/36.0.0/apksigner verify \
-    --v4-signature-file MarkView-<版本>-release.apk.idsig MarkView-<版本>-release.apk
-sha256sum MarkView-<版本>-release.apk        # 追加到 SHA256.txt
+    --v4-signature-file <v4-signature> <release-apk>
+sha256sum <release-apk>          # 结果追加到 SHA256.txt
 ```
 
-- **签名材料**：`keystore.properties` 与 `*.jks` 均被 `.gitignore` 排除，**必须离线备份**；
-  口令不写入仓库、APK 或任何文档（每次发布前用脚本扫描确认）。
-- **二进制产物**：APK 与 `.idsig` 属构建产物，不入库；`SHA256.txt` 记录每个交付版本的哈希与版本替代关系。
-- **标记发布**：每个交付版本提交后打一个 annotate tag（当前为 `v1.0.7`）。
+- **签名材料**：签名配置与密钥库由构建机本地持有并离线备份，不纳入版本控制；
+  口令不得写入仓库、产物或任何文档（发布前用脚本扫描确认）。
+- **哈希记录**：`SHA256.txt` 记录每个交付版本的 SHA-256 与版本替代关系（该文件是仓库内容）。
+- **标记发布**：每个交付版本提交后打一个 annotate tag（当前 `v1.0.8`）。
 
 ## 六、已知限制
 
@@ -251,20 +243,17 @@ sha256sum MarkView-<版本>-release.apk        # 追加到 SHA256.txt
 - **复杂分子**：数十个原子以上时，库自身的布局可能出现交叉拥挤，本包不做几何美化；过宽时横向滚动查看。
 - **页面缩放手势已关闭**：与 WebView 设置一致（`user-scalable=no` + `setSupportZoom(false)`），
   字号由系统字体缩放统一控制；开启整页缩放会与容器内横向滚动形成同方向嵌套滚动，见 `BUILD-NOTES.md` §11。
-- **未做真机验证**：本机没有设备/模拟器，触摸滚动、裁切、字体回退观感、WebView 行为均需真机确认。
+- **真机行为**（触摸滚动、裁切、字体回退观感、WebView 缩放、系统入口的相对资源）已在真机上验证；
+  本仓库保存的是可复核的自动化证据（单元测试与页面回归），逐项真机清单见 `BUILD-NOTES.md` §9。
 
 ## 七、文档索引
 
 | 文档 | 内容 |
 | --- | --- |
 | `MarkView-一次落地项目书.md` | 产品定义、验收标准、安全与签名要求（需求基线） |
-| `BUILD-NOTES.md` | 每个交付版本的构建、签名、根因分析、已执行检查与待真机验证清单 |
-| `MarkView-第三轮查证记录.md` | 第三轮问题的逐条查证证据与实施结果 |
-| `test/MarkView-首轮测试错误报告.md` | 第一轮真机问题（MV-01 ~ MV-04）——**本地素材，不入库** |
-| `test/MarkView-第二轮测试错误报告.md` | 第二轮真机问题（MV-05、MV-06）——**本地素材，不入库** |
-| `test/MarkView-第三轮测试错误报告.md` | 第三轮真机问题（MV-07 ~ MV-13）——**本地素材，不入库** |
-| `test/MarkView-极全面功能与安全测试.md` | 功能与安全覆盖面测试文档——**本地素材，不入库** |
-| `test/MarkView-化学方程式支持增量项目书.md` | 化学方程式支持的需求与验收（增量书）——**本地素材，不入库** |
-| `test/化学方程式测试.md`、`test/化学.md` | 真机回归夹具（CE01–CE08、分子结构式等）——**本地素材，不入库**（回归套件用 `tools/js-smoke/fixtures/` 内的副本） |
-| `tools/js-smoke/README.md` | 页面回归套件说明与运行方式 |
-| `SHA256.txt` | 各交付 APK 的 SHA-256 |
+| `BUILD-NOTES.md` | 每个交付版本的构建、签名、根因分析、已执行检查与真机验证清单 |
+| `MarkView-第三轮查证记录.md` | 第三轮问题的逐条查证证据与实施结果（第四轮 MV-14 见 `BUILD-NOTES.md` §13） |
+| `tools/js-smoke/README.md` | 页面回归套件的说明与运行方式 |
+| `tools/js-smoke/fixtures/` | 回归套件自带夹具（化学方程式测试） |
+| `SHA256.txt` | 各交付版本的 SHA-256 与版本替代关系 |
+| `.gitignore` / `.gitattributes` | 版本控制范围与行尾/二进制处理约定 |
