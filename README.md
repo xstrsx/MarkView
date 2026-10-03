@@ -8,7 +8,7 @@
 
 | 项目 | 值 |
 | --- | --- |
-| 当前版本 | `1.0.8`（versionCode 9） |
+| 当前版本 | `1.0.9`（versionCode 10） |
 | 包名 | `com.markview.viewer` |
 | 平台 | minSdk 26（Android 8.0）/ targetSdk 35 / compileSdk 36 |
 
@@ -51,7 +51,8 @@
 - Mermaid 11.17.2，覆盖 20 种图类型：flowchart、sequence、class、state、ER、gantt、journey、pie、
   gitGraph、mindmap、timeline、quadrant、requirement、block、packet、kanban、radar、architecture、
   **swimlane 泳道图（`swimlane-beta`）**等。
-- 图表按自然尺寸绘制后由容器决定"铺满宽度"还是"横向滚动"，不会把标签缩小到看不清。
+- 图表按自然尺寸绘制后由容器决定"铺满宽度"还是"横向滚动"，不会把标签缩小到看不清；
+  甘特图按固定画布宽度（720px）排版后由容器横向滚动，因此窄屏上底部日期刻度不会互相重叠。
 - 本包未实现的图类型会明确提示 **"Mermaid 不支持该图表类型（mermaid 11.17.2）"**，与"渲染失败"
   分开；两种情况都保留原始代码并把真实错误写入 logcat。
 
@@ -163,7 +164,7 @@ app/src/main/assets/markview/               页面层（离线）
 
 app/src/test/                纯 JVM 单元测试
 app/src/androidTest/         清单入口点测试（需真机/模拟器）
-tools/js-smoke/              页面回归套件（6 套 199 条断言，需要 Node）
+tools/js-smoke/              页面回归套件（7 套 211 条断言，需要 Node）
 tools/js-smoke/fixtures/     回归套件自带的夹具（化学方程式测试.md）
 tools/icon-preview.py        用标准库把启动图标渲染成 PNG 预览
 ```
@@ -195,7 +196,7 @@ release 签名参数由构建机本地提供（环境变量 `MARKVIEW_KEYSTORE_F
 | --- | --- | --- |
 | 单元测试 | URL 策略、SAF 树边界、文件类型、MIME、内容同一性规则 | 39 个用例 × 2 变体 = 78 次执行，0 失败 |
 | Lint | Android Lint | 0 error，1 warning（`OldTargetApi`，targetSdk 由项目书固定为 35） |
-| 页面回归 | `tools/js-smoke/`：基础渲染、围栏与主题、首轮问题、第二轮几何、化学方程式、第三/四轮问题 | 6 套 199 条断言，全绿 |
+| 页面回归 | `tools/js-smoke/`：基础渲染、围栏与主题、首轮问题、第二轮几何、化学方程式、第三/四轮问题、甘特图日期轴 | 7 套 211 条断言，全绿 |
 | 仪器测试 | 清单入口点接线 | 源码可编译 |
 | 真机人工验证 | 触摸滚动、裁切、字体回退观感、缩放行为、系统入口的相对资源 | 已在真机上执行并**全部通过**（用户确认）；逐项清单见 `BUILD-NOTES.md` §9 |
 
@@ -255,6 +256,7 @@ sha256sum <release-apk>          # 结果追加到 SHA256.txt
 | `BUILD-NOTES.md` | 每个交付版本的构建、签名、根因分析、已执行检查与真机验证清单 |
 | `MarkView-第三轮查证记录.md` | 第三轮问题的逐条查证证据与实施结果（第四轮 MV-14 见 `BUILD-NOTES.md` §13） |
 | `tools/js-smoke/README.md` | 页面回归套件的说明与运行方式 |
+| `tools/js-smoke/smoke7.js` | 甘特图日期轴的宽度回归（MV-15） |
 | `tools/js-smoke/fixtures/` | 回归套件自带夹具（化学方程式测试） |
 | `SHA256.txt` | 各交付版本的 SHA-256 与版本替代关系 |
 | `.gitignore` / `.gitattributes` | 版本控制范围与行尾/二进制处理约定 |

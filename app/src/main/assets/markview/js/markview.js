@@ -75,6 +75,14 @@
   // telling the user a wrong version.
   var MERMAID_VERSION = "11.17.2";
 
+  // MV-15: layout width of a Gantt chart. Mermaid sizes that diagram from its container
+  // (`parentElement.offsetWidth`) while choosing the time-axis ticks from the date span alone,
+  // so on a phone the same seven weekly `%Y-%m-%d` labels ended up 29px apart and overlapped.
+  // 720px keeps ~79px between ticks (labels are ~60-70px wide) for the common case and the
+  // diagram container scrolls horizontally when that is wider than the screen. Pinned by
+  // tools/js-smoke/smoke7.js.
+  var MERMAID_GANTT_WIDTH = 720;
+
   var state = {
     theme: "light",
     generation: 0,
@@ -589,7 +597,14 @@
         // unreadable type (project book §8: 图表按可用宽度缩放, MV-04).
         flowchart: { htmlLabels: true, useMaxWidth: false, curve: "linear" },
         sequence: { useMaxWidth: false },
-        gantt: { useMaxWidth: false },
+        // MV-15: a Gantt chart is the one diagram whose *layout* width is not its content
+        // width — mermaid measures `parentElement.offsetWidth` and lays the whole chart out
+        // for that, while the axis ticks are chosen from the time span alone (`%Y-%m-%d`
+        // labels are ~60-70px wide, seven weekly ticks landed 29px apart on a 360px phone,
+        // so the date labels overlapped). `useWidth` fixes the canvas at a width that leaves
+        // room for the labels; the container above then scrolls it horizontally instead of
+        // squeezing it, exactly like the other diagram types (MV-04).
+        gantt: { useMaxWidth: false, useWidth: MERMAID_GANTT_WIDTH },
         journey: { useMaxWidth: false },
         class: { useMaxWidth: false },
         state: { useMaxWidth: false },

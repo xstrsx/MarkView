@@ -1,4 +1,4 @@
-# MarkView 1.0.8 构建与交付说明
+# MarkView 1.0.9 构建与交付说明
 
 对应项目书：`MarkView-一次落地项目书.md`（§12 自动化检查、§13 签名与交付要求），
 `test/MarkView-首轮测试错误报告.md`（MV-01 ~ MV-04）、
@@ -11,6 +11,10 @@
 1.0.8 修复 **MV-14**（系统"打开方式 / 分享"打开的文档无法加载相对图片与内联文件，根因是
 跨 provider 无法关联已授权 tree），并落地三项小改动（持久化授权只在确认为 Markdown 且不被
 tree 覆盖时写入、只把真正的 tree 授权当作解析基准、文档离开文档栈时释放自己的授权）；见 §13。
+
+1.0.9 修复 **MV-15**（竖屏时甘特图底部日期刻度重叠）：甘特图的排版宽度取自容器宽度，而刻度
+疏密只由时间跨度决定，于是窄屏上 7 个 `%Y-%m-%d` 标签被压到 29px 间距；改为固定画布宽度
+`gantt.useWidth = 720`，由容器横向滚动承接（与 MV-04 同一策略）；见 §14。
 逐条查证过程（含无头复现命令与结论）另见 `MarkView-第三轮查证记录.md`。
 
 > **仓库内容说明**：`test/`（各轮测试报告、真机截图与评审夹具）是本地评审素材，**不入库**；
@@ -22,24 +26,24 @@ tree 覆盖时写入、只把真正的 tree 授权当作解析基准、文档离
 
 | 文件 | 说明 |
 | --- | --- |
-| `MarkView-1.0.8-release.apk` | **本次交付的 release 签名 APK** |
-| `MarkView-1.0.8-release.apk.idsig` | APK Signature Scheme v4 旁挂文件，仅 `adb install --incremental` 需要；不安装也能正常使用 |
-| `SHA256.txt` | 上列文件的 SHA-256（并保留 1.0.0 ~ 1.0.7 的哈希供比对） |
+| `MarkView-1.0.9-release.apk` | **本次交付的 release 签名 APK** |
+| `MarkView-1.0.9-release.apk.idsig` | APK Signature Scheme v4 旁挂文件，仅 `adb install --incremental` 需要；不安装也能正常使用 |
+| `SHA256.txt` | 上列文件的 SHA-256（并保留 1.0.0 ~ 1.0.8 的哈希供比对） |
 | 源码 | 本目录的完整 Gradle 工程（含 Wrapper） |
 
 绝对路径：
 
 ```text
-/home/xstrsx/project/MarkView/MarkView-1.0.8-release.apk
+/home/xstrsx/project/MarkView/MarkView-1.0.9-release.apk
 ```
 
-- applicationId：`com.markview.viewer`（与 1.0.0 ~ 1.0.7 相同，可直接覆盖升级）
-- versionName / versionCode：`1.0.8` / `9`
-- APK 大小：3,508,105 字节
-- SHA-256：`076d7c75d1efcef56c19a482a3dfb31051953e71798c52bfac0c3e7403ef91ae`
+- applicationId：`com.markview.viewer`（与 1.0.0 ~ 1.0.8 相同，可直接覆盖升级）
+- versionName / versionCode：`1.0.9` / `10`
+- APK 大小：3,508,582 字节
+- SHA-256：`fc37d09b1853d1e2ccb8c4326f64786925a40f68d9f886be06124be2d866086a`
 - minSdk 26 / targetSdk 35 / compileSdk 36
 
-1.0.0 ~ 1.0.7 的 APK 仅保留作对照，**请安装 1.0.8**（后装旧版会被系统视为降级；
+1.0.0 ~ 1.0.7 的 APK 仅保留作对照，**请安装 1.0.9**（后装旧版会被系统视为降级；
 1.0.3 的图标是被回退掉的 Markdown 标记版本）。
 
 ## 2. 签名
@@ -64,7 +68,7 @@ Signer #1 key algorithm: RSA (4096 bit)
 Signer #1 certificate SHA-256 digest: b0aef553d91efe8ec8bc5e5810a99306501081d2d694138c0b40c01a997e3249
 ```
 
-- **与 1.0.0 ~ 1.0.7 使用同一把 release 密钥**（证书 SHA-256 完全一致），可覆盖升级；
+- **与 1.0.0 ~ 1.0.8 使用同一把 release 密钥**（证书 SHA-256 完全一致），可覆盖升级；
   未换成 debug 密钥，密钥未缺失。
 - v2 / v3 / v4 均通过；v1 报告为 false 属预期（minSdk 26，AGP 不写入 v1）。
   注意 v4 只有在命令行显式给出 `.idsig`（如上）时才校验；不带该参数时报告为 false，这不是签名问题。
@@ -331,7 +335,7 @@ APK 内已核对（`aapt2 dump xmltree`）：自适应图标三层齐全；前�
 ```text
 ./gradlew test              成功；单元测试 39 个用例 × debug/release 两个变体 = 78 次执行，0 失败
 ./gradlew lint              成功；0 error，1 warning（仅 OldTargetApi，见 §11）
-./gradlew assembleRelease   成功；已生成 1.0.8 release 签名 APK（versionCode 9）
+./gradlew assembleRelease   成功；已生成 1.0.9 release 签名 APK（versionCode 10）
 ./gradlew assembleDebugAndroidTest  成功（androidTest 源码可编译；无真机未运行）
 ```
 
@@ -341,8 +345,8 @@ APK 校验（Build-Tools 36.0.0）：
 zipalign -c 4                                        → Verification successful
 apksigner verify --print-certs                       → Verifies（v2/v3）
 apksigner verify --v4-signature-file ...idsig        → Verifies（v2/v3/v4）
-aapt2 dump badging                                   → com.markview.viewer, versionCode=9,
-                                                       versionName=1.0.8, minSdk=26, targetSdk=35
+aapt2 dump badging                                   → com.markview.viewer, versionCode=10,
+                                                       versionName=1.0.9, minSdk=26, targetSdk=35
 APK 资源检查（zip 内容）                              → vendor/katex-mhchem.min.js 33,712 字节、
                                                        vendor/katex.min.js、css/katex.min.css、
                                                        20 个 KaTeX woff2 字体、两份许可说明均已打包；
@@ -409,6 +413,11 @@ smoke4.js  32 项断言通过 —— MV-05/MV-06 专项：
              · refit 幂等、无结构时不抛错；
              · C1( 仍降级且其后结构式继续渲染；Mermaid/KaTeX/普通图片与缺图占位无回归；
              · CSS 断言：`max-width: none`、居中、`overflow-x: auto`、无 `touch-action`。
+smoke7.js  12 项断言通过 —— MV-15 甘特图日期轴：
+             · 页面把固定排版宽度交给 mermaid（gantt.useWidth = 720，useMaxWidth 仍为 false）；
+             · 360px 容器与 1200px 容器渲染出的甘特图**都是 720px 宽**（同一文档在任何机型一致）；
+             · 底部刻度间距从修复前的 29px 变为 **79px**，对 ~70px 宽的 %Y-%m-%d 标签留出余量；
+             · 仍保留"比屏幕宽就横向滚动、绝不缩小"的容器样式（不裁切标签）。
 smoke6.js  57 项断言通过 —— 第三轮回归（MV-07 / MV-08 / MV-09 / MV-10 / MV-11 / MV-14）：
              · MV-08：viewport 已是 maximum-scale=1 + user-scalable=no，且 WebViewFactory 仍
                拒绝缩放（setSupportZoom(false)、builtInZoomControls=false），textZoom 保留
@@ -460,6 +469,8 @@ MV-08（整页横向移动）——它的验收（未缩放状态下不得整页
 - **MV-11**：`swimlane-beta`（泳道图）应能正常画出（本轮已升级 mermaid 11.17.2）；
   写成 `swimlanes`（另一种拼写）或其它本包不支持的图类型时，提示应为
   "Mermaid 不支持该图表类型（mermaid 11.17.2）"而不是"渲染失败"，且原始代码仍在；
+- **MV-15（1.0.9）**：竖屏打开含甘特图的文档（夹具里那张即可）——底部日期刻度**不再重叠**，
+  可以横向滑动看到整条时间轴；同时确认很短的甘特图（几天跨度）只是偏宽、需要滑一点，没有异常；
 - **回归关注**：升级 mermaid 后，原有的 flowchart / sequence / class / state / er / gantt / pie /
   mindmap / timeline / gitGraph / quadrant / requirement / block / packet / kanban / radar /
   architecture 图与深色模式观感是否有变化（本地无法排版，需要真机确认）。
@@ -541,7 +552,11 @@ SMILES 相关的问题还会带上 `smiles sizing failed (...)` 一类信息。
     绑到该目录；若内容不同、或同一内容在多个已授权目录中都存在、或文件位于授权目录内 8 层以上
     /目录条目超过 3000，则仍按"缺图降级"处理（绝不按名字猜测）。文件名被改写的副本（如
     `文档 (1).md`）匹配不上，这是有意为之。详见 §13。
-14. **系统里可能残留历史单文档授权**：1.0.8 起不再为"不是 Markdown 的文件"或"已被授权目录覆盖的
+14. **甘特图按固定画布宽度排版**：1.0.9 起 `gantt.useWidth = 720`（宽屏容器下会等比放大到
+    容器宽度），因此①窄屏上图表横向滚动、日期刻度不重叠；②跨度很短的甘特图（例如几天）也会
+    偏宽、需要滑一点；③如果文档自己用 `tickInterval` 指定了极密的刻度（例如把一年的刻度定为
+    每天），标签仍可能挤在一起——那是文档自身的排版选择，本次不做自适应旋转（备选方案见 §14）。
+15. **系统里可能残留历史单文档授权**：1.0.8 起不再为"不是 Markdown 的文件"或"已被授权目录覆盖的
     文档"写授权，并且文档离开文档栈时会释放自己的授权；但**此前版本留下的授权**（例如曾分享给
     MarkView 的图片）不会被自动清理（按你的选择跳过一次性清理）。它们不影响功能，只让日志里的
     `persistedTrees` 计数偏大；要清掉可在系统里清除应用数据。
@@ -737,3 +752,58 @@ resource '…' not found under the authorised tree  × 12        成功注册资
    从最近任务切回 → 文档仍应正常显示；
 4. 四种"应当优雅失败"的情形各复核一次：文件不在任何已授权目录内、内容与目录内那份不同、
    同一内容在多个已授权目录里都有、文件在目录内深度 > 8（正文照常、图片为占位符、不闪退）。
+
+---
+
+## 14. MV-15：竖屏时甘特图底部日期刻度重叠（1.0.9 修复）
+
+### 现象
+
+竖屏（窄屏）查看含甘特图的文档时，图表底部的日期刻度（`%Y-%m-%d`）互相重叠、糊成一片；
+横屏或宽屏下正常。
+
+### 根因（bundle 代码 + 无头实测双重确认）
+
+mermaid 11.17.2 的甘特图渲染器把**排版宽度**取自容器宽度，而**刻度的疏密只由时间跨度决定**：
+
+```js
+ud = h.parentElement.offsetWidth,          // 宽度 = 父容器宽度（手机竖屏约 360px）
+ud === void 0 && (ud = 1200),              // 只有 undefined 才回落到 1200
+i.useWidth !== void 0 && (ud = i.useWidth) // gantt.useWidth 可覆盖
+```
+
+自动刻度器按"每 N 天 / 周 / 月"选刻度（与像素宽度无关），标签格式默认
+`axisFormat: "%Y-%m-%d"`（10 个字符约 60–70px）。夹具里那张甘特图跨度约 6 周 → 7 个周刻度：
+
+| 场景 | SVG 宽度 | 刻度间距 | 结果 |
+| --- | --- | --- | --- |
+| 容器 360px（手机竖屏） | 360 | **29 px** | **重叠** |
+| 容器 1200px（宽屏） | 1200 | 147 px | 正常 |
+| `useWidth = 720`（容器仍 360px） | **720** | **79 px** | 正常，容器横向滚动 |
+
+同时确认：MV-04 的 `useMaxWidth: false` **对甘特图无效**——它只决定渲染完成后 SVG 是否被拉伸，
+而甘特图的"自然宽度"就等于容器宽度，容器永远不会因为"图太宽"而滚动，只能被压扁。
+
+### 修复
+
+```js
+gantt: { useMaxWidth: false, useWidth: MERMAID_GANTT_WIDTH }   // MERMAID_GANTT_WIDTH = 720
+```
+
+- 画布宽度固定为 720px，不再随容器变化 ⇒ 同一文档在任何机型上排版一致；
+- 容器既有的 `.mk-mermaid { overflow-x: auto }` + `> svg { min-width:100%; max-width:none }`
+  接住"比屏幕宽"的情况：横向滚动而不是压缩（与 MV-04 的策略一致）；
+- 内容零改动：不缩短标签、不减少刻度、不裁切（没有使用 `axisFormat` / `tickInterval` 这类会改变
+  显示内容的开关）。
+
+### 覆盖与验证
+
+- 新增 `tools/js-smoke/smoke7.js`（12 条断言）：用打桩的 `offsetWidth`（360 / 1200）与 `getBBox`
+  渲染同一张甘特图，断言"两种容器都得到 720px 宽"、"刻度间距 ≥ 70px（实测 79px，修复前 29px）"、
+  "容器样式仍保证滚动而不缩小"；
+- 仍需真机看一眼：窄屏下滑动是否顺畅、跨度很短的甘特图偏宽是否符合预期（见 §9）。
+
+### 未做（备选方案）
+
+"渲染后测量底部标签、只在真正重叠时旋转 -45° 并补足底部 padding"的自适应方案：改动更大，
+且必须补 padding 才能不被裁切；当前固定宽度已解决报告中的情形，故不做。

@@ -83,6 +83,14 @@ so both scripts assert the documented *fallback* instead: the original code is k
 and the rest of the document still renders. That is exactly the failure isolation
 required by project book §6.6.
 
+`smoke7.js` — MV-15, the Gantt chart's date axis. It renders the Gantt diagram from
+`test/MarkView-极全面功能与安全测试.md` twice, once with a 360px container (a phone) and once
+with 1200px, with `offsetWidth` and `getBBox` stubbed (Mermaid sizes a Gantt chart from the
+container width and measures label text). It asserts that the page hands Mermaid the fixed
+layout width, that the chart comes out 720px wide either way, that the tick spacing now leaves
+room for `%Y-%m-%d` labels (79px instead of the 29px that overlapped on a phone), and that the
+CSS still scrolls a wider-than-screen diagram instead of shrinking it.
+
 MV-14 is the system open/share entry point, which lives in Kotlin: those assertions read
 `SafDocumentResolver.kt`, `MainActivity.kt` and `ContentIdentity.kt` and pin the *structure* of
 the fix (a content-digest pass that only binds after comparing bytes, bounded reads, tree grants
@@ -90,6 +98,6 @@ only, the persisted grant taken in one place after the Markdown check, and grant
 document leaves the stack). The matching rules themselves are unit-tested
 (`ContentIdentityPolicyTest`); the SAF behaviour still needs a device.
 
-Last run on the delivered build (1.0.8): **PASS** (25 assertions in `smoke.js`, 10 in
-`smoke2.js`, 26 in `smoke3.js`, 32 in `smoke4.js`, 49 in `smoke5.js`, 57 in `smoke6.js`
-— 199 in total).
+Last run on the delivered build (1.0.9): **PASS** (25 assertions in `smoke.js`, 10 in
+`smoke2.js`, 26 in `smoke3.js`, 32 in `smoke4.js`, 49 in `smoke5.js`, 57 in `smoke6.js`,
+12 in `smoke7.js` — 211 in total).
