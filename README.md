@@ -259,4 +259,13 @@ sha256sum <release-apk>          # 结果追加到 SHA256.txt
 | `tools/js-smoke/smoke7.js` | 甘特图日期轴的宽度回归（MV-15） |
 | `tools/js-smoke/fixtures/` | 回归套件自带夹具（化学方程式测试） |
 | `SHA256.txt` | 各交付版本的 SHA-256 与版本替代关系 |
+| `LICENSE` | 本项目采用 MIT 许可（© 2026 xstrsx） |
 | `.gitignore` / `.gitattributes` | 版本控制范围与行尾/二进制处理约定 |
+
+## 八、许可
+
+本项目采用 **MIT 许可**（见 `LICENSE`，© 2026 xstrsx）。
+
+随 APK 打包的第三方组件各自保留其许可：markdown-it、KaTeX、mhchem 扩展、Mermaid、SmilesDrawer
+为 MIT，markdown-it-task-lists 为 ISC（KaTeX 与 mhchem 的许可文本已随资产打包在
+`app/src/main/assets/markview/vendor/` 下）。各组件的确切版本见"技术栈"一节。
